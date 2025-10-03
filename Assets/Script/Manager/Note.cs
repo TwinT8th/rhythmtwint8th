@@ -57,12 +57,11 @@ public class Note : MonoBehaviour
             if (TimingManager.instance != null)
                 TimingManager.instance.CharactorAct("Miss");
 
-
-            // @ Animator → SpriteAnimatorBPM 방식으로 Stop 교체
+            // Animator → SpriteAnimatorBPM 방식으로 Stop 교체
             if (timingCircleAnim != null) timingCircleAnim.Stop();
             if (hitMarkerAnim != null) hitMarkerAnim.Stop();
 
-
+            isResolved = true;
         }
     }
 
@@ -144,4 +143,6 @@ public class Note : MonoBehaviour
         if (judgementAnimator != null)
             judgementAnimator.SetTrigger("Hit");
     }
+
+
 }

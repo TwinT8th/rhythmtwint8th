@@ -127,9 +127,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 320
-        width: 320
-        height: 320
+        y: 120
+        width: 130
+        height: 120
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -137,8 +137,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0f2fc4513116c6748b7e49599a00c682
-      internalID: -796089894
+      spriteID: cfcee8ef2ae32884080570d8c9fd1987
+      internalID: -1043886206
       vertices: []
       indices: 
       edges: []
@@ -147,10 +147,10 @@ TextureImporter:
       name: Paw note change-Sheet_1
       rect:
         serializedVersion: 2
-        x: 320
-        y: 320
-        width: 320
-        height: 320
+        x: 130
+        y: 120
+        width: 130
+        height: 120
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -158,8 +158,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5560a60d72f697f44a1748e4b946a579
-      internalID: -1002170231
+      spriteID: 60a12f8ba34b9174cad8787c1c34667b
+      internalID: -1156362903
       vertices: []
       indices: 
       edges: []
@@ -170,8 +170,8 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 320
-        height: 320
+        width: 130
+        height: 120
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -179,8 +179,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: cd59fa2399d3098429936714ea67759e
-      internalID: 694393577
+      spriteID: ed19ae4bca2044a4f98ebddd842f9718
+      internalID: 1740638353
       vertices: []
       indices: 
       edges: []
@@ -189,10 +189,10 @@ TextureImporter:
       name: Paw note change-Sheet_3
       rect:
         serializedVersion: 2
-        x: 320
+        x: 130
         y: 0
-        width: 320
-        height: 320
+        width: 130
+        height: 120
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -200,8 +200,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f7a553479c7ad224c91fa41480152fda
-      internalID: -1234127714
+      spriteID: 53a725f2c9a95b24d828f0662a4ba1c5
+      internalID: 1986874198
       vertices: []
       indices: 
       edges: []
@@ -209,7 +209,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 58b88ea903d81d441b3b94e44b9b5838
+    spriteID: df4c8eaef88b244448644ecd7b83b22c
     internalID: 0
     vertices: []
     indices: 
@@ -217,10 +217,10 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Paw note change-Sheet_0: -796089894
-      Paw note change-Sheet_1: -1002170231
-      Paw note change-Sheet_2: 694393577
-      Paw note change-Sheet_3: -1234127714
+      Paw note change-Sheet_0: -1043886206
+      Paw note change-Sheet_1: -1156362903
+      Paw note change-Sheet_2: 1740638353
+      Paw note change-Sheet_3: 1986874198
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -7,6 +7,7 @@ using static UnityEngine.GraphicsBuffer;
 
 public class NoteManager : MonoBehaviour
 {
+    public static NoteManager instance;
 
     [Header("음악, 패턴")]
     public AudioSource music; //BGM0 AudioSource 할당
@@ -17,7 +18,7 @@ public class NoteManager : MonoBehaviour
 
     [Header("스폰")]
     [SerializeField] Transform noteParent = null; // 노트들을 담을 부모 오브젝트
-    [SerializeField] GameObject notePrefab = null; //노트 프리펩을 담을 변수
+    //[SerializeField] GameObject notePrefab = null; //노트 프리펩을 담을 변수
 
     private List<NoteEvent> pattern; //CSV에서 읽은 데이터
     private List<double> spawnTimesSec;     //각 노트의 절대 스폰시각(초)
@@ -31,7 +32,10 @@ public class NoteManager : MonoBehaviour
     [Header("Approach Settings")]
     [SerializeField] public float approachBeats = 2f; // 추가: 타겟보다 몇 박자 먼저 나타날지 (타이밍서클/히트마커 길이와 동일)
 
-
+    void Awake()
+    {
+        instance = this;
+    }
     private void Start()
     {
         //CSV에서 패턴 가져오기
@@ -100,25 +104,34 @@ public class NoteManager : MonoBehaviour
 */
     private void SpawnNote(NoteEvent e, int index)
     {
-        // TODO: ObjectPool 사용 시 여기만 교체
-        GameObject note = Instantiate(notePrefab, noteParent);
+       //풀에서 오브젝트 꺼내오기
+        GameObject note = ObjectPool.instance.noteQueue.Dequeue();
 
         // 좌표계 결정: 여기서는 부모 기준 localPosition으로 배치
+        note.transform.SetParent(noteParent); //부모 지정
         note.transform.localPosition = new Vector3(e.x, e.y, 0f);
+        note.transform.localScale = Vector3.one;
+        note.SetActive(true);
 
-        // Note 컴포넌트 가져오기
+        // Note 컴포넌트 초기화
         Note comp = note.GetComponent<Note>();
         if (comp != null)
         {
             //  @ 타겟의 절대 DSP 시각 = 오디오 예약 시작 DSP + 타겟(초) 
             double targetDSPTime = scheduledStartDSPTime + targetTimesSec[index];
-            comp.Init(targetDSPTime);   // @ 타겟 “절대” 시각 전달 (Note는 이걸 기준으로 판정)
+            comp.Init(targetDSPTime);   // 타겟 “절대” 시각 전달 (Note는 이걸 기준으로 판정)
         }
 
-
-        // 필요하다면 Note 컴포넌트에 목표 beat/시간 전달(판정/타이밍용)
-        // var comp = note.GetComponent<Note>();
-        // if (comp != null) comp.Init(targetBeat: e.beat, bpm: bpm);
+    }
+    public void ReturnNote(Note note)
+    {
+        note.gameObject.SetActive(false);
+        ObjectPool.instance.noteQueue.Enqueue(note.gameObject);
     }
 
+    // 필요하다면 Note 컴포넌트에 목표 beat/시간 전달(판정/타이밍용)
+    // var comp = note.GetComponent<Note>();
+    // if (comp != null) comp.Init(targetBeat: e.beat, bpm: bpm);
 }
+
+

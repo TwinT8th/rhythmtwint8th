@@ -42,6 +42,39 @@ public class Note : MonoBehaviour
         }
     }
 
+    void OnEnable()
+    {
+        // 풀링 재사용될 때마다 초기화 보장
+        if (judgementAnimator == null)
+        {
+            Transform judge = transform.Find("JudgementEffect");
+            if (judge != null) 
+            { 
+                if (judgementAnimator == null) 
+                    judgementAnimator = judge.GetComponent<Animator>(); 
+                
+                if (judgementImage == null) 
+                    judgementImage = judge.GetComponent<Image>(); 
+            }
+        }
+        
+        if (judgementImage != null) 
+            judgementImage.enabled = false;
+
+        /*
+        if (judgementImage == null)
+        {
+            Transform judge = transform.Find("JudgementEffect");
+            if (judge != null)
+                judgementImage = judge.GetComponent<Image>();
+        }
+
+        if (judgementImage != null)
+            judgementImage.enabled = false;
+        */
+        isResolved = false;
+    }
+
     void Update()
     {
         if (isResolved) return;
@@ -49,7 +82,7 @@ public class Note : MonoBehaviour
         double now = AudioSettings.dspTime;
         double lastAllowed = targetTimeSec + (double)TimingManager.instance.missRange;
 
-        // Miss 판정
+        // Miss 판정// 여기서 바로 반납 하지 마! (애니가 돌 기회가 사라짐)
         if (now > lastAllowed)
         {
             ShowJudgementEffect(4); // Miss = index 4
@@ -62,13 +95,23 @@ public class Note : MonoBehaviour
             if (hitMarkerAnim != null) hitMarkerAnim.Stop();
 
             isResolved = true;
+
+            CancelInvoke(nameof(SafetyReturn));
+            Invoke(nameof(SafetyReturn), 1.0f);
+
+            //NoteManager.instance.ReturnNote(this);
         }
     }
 
-    private void HideNote()
+    private void SafetyReturn() // ★ 추가: 이벤트 못 받았을 때 대비용
     {
-        gameObject.SetActive(false); // @ Destroy → SetActive(false)로 풀링 대응
+        if (gameObject.activeInHierarchy)
+        {
+            Debug.LogWarning("[Note] AnimationEvent 미수신으로 안전 반납 수행", this);
+            NoteManager.instance.ReturnNote(this);
+        }
     }
+
 
     public void Init(double targetTime)
     {
@@ -85,7 +128,7 @@ public class Note : MonoBehaviour
 
         if (judgementImage != null)
         {
-            Debug.Log($"[Note] Init() judgementImage = {judgementImage.name}", this);
+            //Debug.Log($"[Note] Init() judgementImage = {judgementImage.name}", this);
             judgementImage.enabled = false;
         }
 
@@ -130,9 +173,15 @@ public class Note : MonoBehaviour
         if (timingCircleAnim != null) timingCircleAnim.gameObject.SetActive(false);
 
         isResolved = true;
+
+        //안전장치: 이벤트가 안 들어오면 1초 뒤 강제 반납
+        CancelInvoke(nameof(SafetyReturn)); 
+        Invoke(nameof(SafetyReturn), 1.0f);
+
+        //NoteManager.instance.ReturnNote(this);
     }
 
-    private void ShowJudgementEffect(int index)
+    public  void ShowJudgementEffect(int index)
     {
         if (judgementSprites != null && index >= 0 && index < judgementSprites.Length)
         {
@@ -141,8 +190,28 @@ public class Note : MonoBehaviour
         }
 
         if (judgementAnimator != null)
+        {
+            Debug.Log($"[Note] Animator state BEFORE trigger: active={judgementAnimator.gameObject.activeSelf}, enabled={judgementAnimator.enabled}, controller={(judgementAnimator.runtimeAnimatorController != null ? judgementAnimator.runtimeAnimatorController.name : "null")}", this);
+
+            judgementAnimator.gameObject.SetActive(true);
+            judgementAnimator.enabled = true;
+            judgementAnimator.ResetTrigger("Hit");
             judgementAnimator.SetTrigger("Hit");
+
+            Debug.Log($"[Note] Animator Trigger 'Hit' SET on {judgementAnimator.name}", this);
+        }
+        else
+        {
+            Debug.LogError("[Note] judgementAnimator is NULL!", this);
+        }
     }
 
+    public void NotifyNoteFinished()
+    {
+        // 판정 애니 끝났다고 Manager에 알림
+        Debug.Log("[Note] NotifyNoteFinished() 수신 → 매니저에 반납", this);
+        CancelInvoke(nameof(SafetyReturn));
+        NoteManager.instance.ReturnNote(this);
+    }
 
 }

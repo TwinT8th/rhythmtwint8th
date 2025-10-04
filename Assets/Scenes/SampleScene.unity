@@ -513,6 +513,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1103574199}
+  - component: {fileID: 1103574200}
   m_Layer: 0
   m_Name: ObjectPool
   m_TagString: Untagged
@@ -535,6 +536,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1103574200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1103574198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 212e6465a2d9e3d49acd93f0987ba577, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  objectInfo:
+  - goPrefab: {fileID: 4790697479220933522, guid: 51be479f3ec4ff941be3510ad0bf4134, type: 3}
+    count: 20
+    tfPoolParent: {fileID: 1157810834}
 --- !u!1001 &1104318508
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -631,6 +648,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6358088641136677455, guid: 51be479f3ec4ff941be3510ad0bf4134, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -708,7 +729,6 @@ MonoBehaviour:
   songStartOffsetSec: 0
   csvLoader: {fileID: 1587378941}
   noteParent: {fileID: 1157810834}
-  notePrefab: {fileID: 4790697479220933522, guid: 51be479f3ec4ff941be3510ad0bf4134, type: 3}
   leadInSec: 2
   approachBeats: 2
 --- !u!114 &1157810837

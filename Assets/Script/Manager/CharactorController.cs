@@ -39,11 +39,14 @@ public class CharactorController : MonoBehaviour
 
             case "Good":
             case "Bad":
+                if (VideoManager.instance != null) //안전검사
+                    VideoManager.instance.PauseVideo();
                 charAnimator.ResetTrigger("Wobble");
                 charAnimator.SetTrigger("Wobble");
                 break;
 
             case "Miss":
+                if (isFalling) return; // 이미 넘어지는 중이면 무시
                 StartCoroutine(FallRoutine());
                 break;
         }
@@ -53,17 +56,25 @@ public class CharactorController : MonoBehaviour
     {
         isFalling = true;
 
+        if (VideoManager.instance != null) //안전검사
+            VideoManager.instance.PauseVideo();
+
         charAnimator.ResetTrigger("Fall");
         charAnimator.SetTrigger("Fall");
 
         // Fall(2박자) + StandUp(4박자) = 6박자 길이
-        float beatTime = 60f / NoteManager.instance.bpm;
-        yield return new WaitForSeconds(6f * beatTime);
+        float beatTime = (NoteManager.instance != null) //삼항 연산자는 값을 반환할 때만, 즉 대입식에서만 쓸 수 있음. (조건식) ? (조건이 참일 때 값) : (조건이 거짓일 때 값)
+            ? 60f / NoteManager.instance.bpm
+            : 60f / baseBPM;
 
+        yield return new WaitForSeconds(6f * beatTime);
+        
+        //VideoManager.instance.PlayVideo(); - statemachine으로 해결
         charAnimator.ResetTrigger("Walk");
         charAnimator.SetTrigger("Walk");
 
         isFalling = false;
+
     }
 
     public void UpdateAnimatorSpeed(float currentBPM)

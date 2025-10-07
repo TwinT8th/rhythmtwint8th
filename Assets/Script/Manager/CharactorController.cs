@@ -7,37 +7,54 @@ public class CharactorController : MonoBehaviour
 
 
     [Header("애니메이터")]
-    [SerializeField] private Animator animator;
+    [SerializeField] private Animator charAnimator;
 
-    [Header("캐릭터 상태")]
-    public bool isDown = false;   // 넘어져 있는 상태
+    private bool isFalling = false;  // Fall 루틴 중엔 입력 무시
 
     void Awake()
     {
-        if (animator == null)
-            animator = GetComponent<Animator>();
+        if (charAnimator == null)
+            charAnimator = GetComponent<Animator>();
     }
 
-    //판정 결과에 따른 애니메이션 실행
     public void JudgementAct(string result)
     {
-        if (isDown) return; // 다운 상태면 무시. 나중에 체력 누적 게이지 만들어서 이거 쓰기
-            // Animator에 "Perfect", "Great", "Good", "Bad", "Miss" 트리거가 있다고 가정
-        animator.SetTrigger(result);
+        if (isFalling) return; //넘어지는 중엔 어떤 판정도 무시
+
+        switch (result)
+        {
+            case "Perfect":
+            case "Great":
+                break; //걷기 유지
+
+            case "Good":
+            case "Bad":
+                charAnimator.ResetTrigger("Wobble");
+                charAnimator.SetTrigger("Wobble");
+                break;
+
+            case "Miss":
+                StartCoroutine(FallRoutine());
+                break;
+        }
 
     }
-
-    // 다운 상태 진입
-    public void DownState()
+    private System.Collections.IEnumerator FallRoutine()
     {
-        isDown = true;
-        animator.SetBool("IsDown", true);
-    }
+        isFalling = true;
 
-    // 다운 상태에서 회복
-    public void Recover()
-    {
-        isDown = false;
-        animator.SetBool("IsDown", false);
+        charAnimator.ResetTrigger("Fall");
+        charAnimator.SetTrigger("Fall");
+
+        // Fall(2박자) + StandUp(4박자) = 6박자 길이
+        float beatTime = 60f / NoteManager.instance.bpm;
+        yield return new WaitForSeconds(6f * beatTime);
+
+        charAnimator.ResetTrigger("Walk");
+        charAnimator.SetTrigger("Walk");
+
+        isFalling = false;
     }
 }
+
+

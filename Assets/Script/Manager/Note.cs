@@ -61,17 +61,7 @@ public class Note : MonoBehaviour
         if (judgementImage != null) 
             judgementImage.enabled = false;
 
-        /*
-        if (judgementImage == null)
-        {
-            Transform judge = transform.Find("JudgementEffect");
-            if (judge != null)
-                judgementImage = judge.GetComponent<Image>();
-        }
 
-        if (judgementImage != null)
-            judgementImage.enabled = false;
-        */
         isResolved = false;
     }
 
@@ -90,12 +80,13 @@ public class Note : MonoBehaviour
             if (TimingManager.instance != null)
                 TimingManager.instance.CharactorAct("Miss");
 
-            // Animator → SpriteAnimatorBPM 방식으로 Stop 교체
+            // Animator -> SpriteAnimatorBPM 방식으로 Stop 교체
             if (timingCircleAnim != null) timingCircleAnim.Stop();
             if (hitMarkerAnim != null) hitMarkerAnim.Stop();
 
             isResolved = true;
 
+            //애니메이션이 안전하게 재생될 수 있게 시간 간격 둠
             CancelInvoke(nameof(SafetyReturn));
             Invoke(nameof(SafetyReturn), 1.0f);
 

@@ -2,12 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+
+
 public class CharactorController : MonoBehaviour
 {
 
 
     [Header("애니메이터")]
     [SerializeField] private Animator charAnimator;
+    [SerializeField] private float baseBPM = 180f; //애니메이션이 실제로는 180BPM 곡에 맞는 속도로 재생되고 있는 셈
 
     private bool isFalling = false;  // Fall 루틴 중엔 입력 무시
 
@@ -16,6 +20,12 @@ public class CharactorController : MonoBehaviour
         if (charAnimator == null)
             charAnimator = GetComponent<Animator>();
     }
+
+    void Start()
+    {
+        UpdateAnimatorSpeed(NoteManager.instance.bpm);
+    }
+
 
     public void JudgementAct(string result)
     {
@@ -54,6 +64,16 @@ public class CharactorController : MonoBehaviour
         charAnimator.SetTrigger("Walk");
 
         isFalling = false;
+    }
+
+    public void UpdateAnimatorSpeed(float currentBPM)
+    {
+
+        // 단순 비례 계산식
+        float speed = currentBPM / baseBPM;
+        charAnimator.speed = speed;
+
+        Debug.Log($"[CharactorController] Animator speed set to {speed:F2} (BPM={currentBPM})");
     }
 }
 

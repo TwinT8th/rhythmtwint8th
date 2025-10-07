@@ -5,13 +5,16 @@ using System.Security.Cryptography;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 
+
+// 곡 교체시 BPM 변화 구현해야 함.
+
 public class NoteManager : MonoBehaviour
 {
     public static NoteManager instance;
 
     [Header("음악, 패턴")]
     public AudioSource music; //BGM0 AudioSource 할당
-    public float bpm = 90f; //1분당 노트 몇 개 생성
+    public float bpm = 90f; //1분당 노트 몇 개 생성 - 곡 교체시 받아오기.
     public double songStartOffsetSec = 0d; //음악 시작 시점(초), 필요 없으면 0
     //double currentTime = 0d; //노트 생성을 위한 시간을 체크할 변수
     public CSVLoader csvLoader;

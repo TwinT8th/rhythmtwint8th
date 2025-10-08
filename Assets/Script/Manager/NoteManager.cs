@@ -21,7 +21,7 @@ public class NoteManager : MonoBehaviour
 
     [Header("스폰")]
     [SerializeField] Transform noteParent = null; // 노트들을 담을 부모 오브젝트
-    //[SerializeField] GameObject notePrefab = null; //노트 프리펩을 담을 변수
+
 
     private List<NoteEvent> pattern; //CSV에서 읽은 데이터
     private List<double> spawnTimesSec;     //각 노트의 절대 스폰시각(초)
@@ -34,6 +34,9 @@ public class NoteManager : MonoBehaviour
 
     [Header("Approach Settings")]
     [SerializeField] public float approachBeats = 2f; // 추가: 타겟보다 몇 박자 먼저 나타날지 (타이밍서클/히트마커 길이와 동일)
+
+    public double lastNoteTimeSec = 0; // 마지막 노트의 시간
+    private bool isLastNoteProcessed = false;
 
     void Awake()
     {
@@ -82,10 +85,12 @@ public class NoteManager : MonoBehaviour
     private void PrecomputeSpawnTimes() //CSV에서 가져온 beat를 실제 절대시간(초)로 한번에 계산해두는 과정
     {
         spawnTimesSec = new List<double>(pattern.Count);
-        targetTimesSec = new List<double>(pattern.Count); // @ 추가
+        targetTimesSec = new List<double>(pattern.Count); 
 
         double secPerBeat = 60 / bpm;
-        double approachSec = approachBeats * secPerBeat;  // @ 타겟보다 미리 나올 시간(초)
+        double approachSec = approachBeats * secPerBeat;  //타겟보다 미리 나올 시간(초)
+        
+        lastNoteTimeSec = 0; // 초기화
 
         for (int i = 0; i < pattern.Count; i++)
         {
@@ -95,8 +100,15 @@ public class NoteManager : MonoBehaviour
 
             double spawn = target - approachSec; // @ 스폰 시각 = 타겟 시각 - 접근 시간
             spawnTimesSec.Add(spawn);
-            Debug.Log($"[SpawnTable] beat={pattern[i].beat}, spawn={spawn:F3}s, target={target:F3}s");
+
+            // 마지막 노트 시간 갱신
+            if (target > lastNoteTimeSec)
+                lastNoteTimeSec = target;
+
+            // Debug.Log($"[SpawnTable] beat={pattern[i].beat}, spawn={spawn:F3}s, target={target:F3}s");
         }
+
+        Debug.Log($"[NoteManager] Last Note Time = {lastNoteTimeSec:F3}s");
     }
 
 
@@ -130,8 +142,54 @@ public class NoteManager : MonoBehaviour
     {
         note.gameObject.SetActive(false);
         ObjectPool.instance.noteQueue.Enqueue(note.gameObject);
-    }
 
+        // 마지막 노트가 처리되었는지 감지
+        if (!isLastNoteProcessed && Mathf.Abs((float)(note.targetTimeSec - (scheduledStartDSPTime + lastNoteTimeSec))) < 0.02f)
+        {
+            isLastNoteProcessed = true;
+            Debug.Log("[NoteManager] 마지막 노트 판정 완료!");
+
+            StartCoroutine(ShowResultAfterFade());
+
+            //StageManager.instance.StartEndSequence(); - 아직 스테이지 매니저 구현 안함
+        }
+
+    }
+    private IEnumerator ShowResultAfterFade()
+    {
+        float fadeDuration = 3f;
+
+        // 오디오 페이드 아웃
+        if (music != null && music.isPlaying)
+        {
+            float startVolume = music.volume;
+            float time = 0f;
+
+            while (time < fadeDuration)
+            {
+                time += Time.deltaTime;
+                music.volume = Mathf.Lerp(startVolume, 0f, time / fadeDuration);
+                yield return null;
+            }
+
+            music.Stop();
+            music.volume = startVolume; // 다음 테스트 대비 초기화
+        }
+        // 비디오 일시정지
+        if (VideoManager.instance != null)
+            VideoManager.instance.PauseVideo();
+
+        // 페이드 시간 대기
+        yield return new WaitForSeconds(fadeDuration);
+
+        // 결과창 표시
+        Result resultUI = FindObjectOfType<Result>();
+        if (resultUI != null)
+        {
+            resultUI.ShowResult();
+            Debug.Log("[NoteManager] Result UI 활성화 완료");
+        }
+    }
     // 필요하다면 Note 컴포넌트에 목표 beat/시간 전달(판정/타이밍용)
     // var comp = note.GetComponent<Note>();
     // if (comp != null) comp.Init(targetBeat: e.beat, bpm: bpm);

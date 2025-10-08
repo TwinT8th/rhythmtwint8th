@@ -15,11 +15,6 @@ public class CharactorController : MonoBehaviour
 
     private bool isFalling = false;  // Fall 루틴 중엔 입력 무시
 
-    void Awake()
-    {
-        if (charAnimator == null)
-            charAnimator = GetComponent<Animator>();
-    }
 
     void Start()
     {

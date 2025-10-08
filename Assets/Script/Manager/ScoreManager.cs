@@ -15,6 +15,7 @@ public class ScoreManager : MonoBehaviour
 
     [Header("Score Settings")]
     [SerializeField] int increaseScore = 10;
+    [SerializeField] int comboBonusScore = 5;
     [SerializeField] float[] weight = null;
 
     private int currentScore = 0;
@@ -40,15 +41,20 @@ public class ScoreManager : MonoBehaviour
 
     public void IncreaseScore(int p_JudgementState)
     {
-        int t_increaseScore = increaseScore;
 
         // 콤보 처리
-        if (p_JudgementState < 2) // Perfect, Great
+        if (p_JudgementState < 2) // Perfect, Great 때 콤보 증가
             IncreaseCombo();
-        else if (p_JudgementState > 3) // Miss
+        else if (p_JudgementState > 3) // Miss 때 콤보 리셋
             ResetCombo();
 
+        //콤보 보너스 점수 계산
+        int t_currentCombo = GetCurrentCombo();
+        int t_bonusComboScore = (t_currentCombo) * comboBonusScore;
+
+        int t_increaseScore = increaseScore + t_bonusComboScore;
         // 점수 가중치
+        
         t_increaseScore = (int)(t_increaseScore * weight[p_JudgementState]);
         currentScore += t_increaseScore;
         txtScore.text = string.Format("{0:#,##0}", currentScore);
@@ -91,6 +97,11 @@ public class ScoreManager : MonoBehaviour
                     comboImage.color = Color.Lerp(comboImage.color, targetColor, Time.deltaTime * 8f);
             }
         }
+    }
+
+    public int GetCurrentCombo()
+    {
+        return currentCombo;
     }
 
     public void ResetCombo()

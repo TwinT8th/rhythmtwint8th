@@ -9,13 +9,13 @@ public class JudgementEventDelay : MonoBehaviour
     void Awake()
     {
         parentNote = GetComponentInParent<Note>();
-        Debug.Log($"[JED] Awake receiver on {name}, parent note = {parentNote}", this);
+        //Debug.Log($"[JED] Awake receiver on {name}, parent note = {parentNote}", this);
     }
 
     // 애니메이션 이벤트가 이 함수를 호출
     public void NotifyNoteFinished()
     {
-        Debug.Log("[JED] NotifyNoteFinished called", this);
+        //Debug.Log("[JED] NotifyNoteFinished called", this);
         if (parentNote != null)
         {
             parentNote.NotifyNoteFinished();

@@ -20,46 +20,22 @@ public class HitMarker : MonoBehaviour
         parentNote = GetComponentInParent<Note>();
 
         if (hitBtn != null)
-        { 
             hitBtn.onClick.AddListener(OnButtonClick);
-            Debug.Log($"[HitMarker] Button 컴포넌트 찾음: {hitBtn.name}", this);
-        }
-        else
-        {
-            Debug.LogError("[HitMarker] Button 컴포넌트 없음!", this);
-        }
+        
 
         markerImage.enabled = true;
 
         if (markerImage == null)
         {
             markerImage = GetComponentInChildren<Image>(); // MarkerSprite 자동 검색
-            Debug.Log($"[HitMarker] markerImage 자동 할당: {(markerImage != null ? markerImage.name : "null")}", this);
+            //Debug.Log($"[HitMarker] markerImage 자동 할당: {(markerImage != null ? markerImage.name : "null")}", this);
         }
         if (markerImage != null)
         {
             markerImage.enabled = true;
-            Debug.Log($"[HitMarker] markerImage.enabled = {markerImage.enabled}", markerImage);
         }
 
     }
-
-    /*
-
-    void OnEnable()
-    {
-        if (markerImage == null)
-            markerImage = GetComponent<Image>();
-
-        if (markerImage != null)
-            markerImage.enabled = true;
-        else
-            Debug.LogError("[HitMarker] markerImage가 할당되지 않았습니다.", this);
-    }
-
-    */
-
-
 
     public void OnButtonClick()
     {

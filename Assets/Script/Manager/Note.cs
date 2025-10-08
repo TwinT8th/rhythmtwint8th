@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -132,34 +133,19 @@ public class Note : MonoBehaviour
         double now = (double)AudioSettings.dspTime;
         double diff = now - targetTimeSec;
 
-        // 판정 계산
-        string result = TimingManager.instance.GetJudgement(diff);
 
-        // 디버그 찍기
-        Debug.Log($"[Note] target={targetTimeSec:F3}, now={now:F3}, diff={diff:F3}, result={result}", this);
+        // TimingManager에서 판정/점수/연출 통합 처리
+        if (TimingManager.instance != null)
+            TimingManager.instance.ProcessJudgement(this, diff);
+        else
+            Debug.LogError("[Note] TimingManager.instance is null!");
 
 
-        // 문자열 → 인덱스 변환
-        int index = 4; // 기본 Miss
-        switch (result)
-        {
-            case "Perfect": index = 0; break;
-            case "Great": index = 1; break;
-            case "Good": index = 2; break;
-            case "Bad": index = 3; break;
-            case "Miss": index = 4; break;
-        }
-
-        ShowJudgementEffect(index);
-
-        // 캐릭터 연출
-        TimingManager.instance.CharactorAct(result);
-
-        // @ Animator 대신 SpriteAnimatorBPM → Stop()
+        // Animator 대신 SpriteAnimatorBPM → Stop()
         if (timingCircleAnim != null) timingCircleAnim.Stop();
         if (hitMarkerAnim != null) hitMarkerAnim.Stop();
 
-        // 여기 추가: 눌리면 아예 애니메이션 꺼버림
+        // 눌리면 아예 애니메이션 꺼버림
         if (hitMarkerAnim != null) hitMarkerAnim.gameObject.SetActive(false);
         if (timingCircleAnim != null) timingCircleAnim.gameObject.SetActive(false);
 
@@ -169,7 +155,7 @@ public class Note : MonoBehaviour
         CancelInvoke(nameof(SafetyReturn)); 
         Invoke(nameof(SafetyReturn), 1.0f);
 
-        //NoteManager.instance.ReturnNote(this);
+
     }
 
     public  void ShowJudgementEffect(int index)
@@ -182,14 +168,12 @@ public class Note : MonoBehaviour
 
         if (judgementAnimator != null)
         {
-            Debug.Log($"[Note] Animator state BEFORE trigger: active={judgementAnimator.gameObject.activeSelf}, enabled={judgementAnimator.enabled}, controller={(judgementAnimator.runtimeAnimatorController != null ? judgementAnimator.runtimeAnimatorController.name : "null")}", this);
-
+          
             judgementAnimator.gameObject.SetActive(true);
             judgementAnimator.enabled = true;
             judgementAnimator.ResetTrigger("Hit");
             judgementAnimator.SetTrigger("Hit");
-
-            Debug.Log($"[Note] Animator Trigger 'Hit' SET on {judgementAnimator.name}", this);
+          
         }
         else
         {
@@ -200,7 +184,7 @@ public class Note : MonoBehaviour
     public void NotifyNoteFinished()
     {
         // 판정 애니 끝났다고 Manager에 알림
-        Debug.Log("[Note] NotifyNoteFinished() 수신 → 매니저에 반납", this);
+        //Debug.Log("[Note] NotifyNoteFinished() 수신 → 매니저에 반납", this);
         CancelInvoke(nameof(SafetyReturn));
         NoteManager.instance.ReturnNote(this);
     }

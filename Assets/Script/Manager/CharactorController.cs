@@ -34,19 +34,34 @@ public class CharactorController : MonoBehaviour
 
             case "Good":
             case "Bad":
-                if (VideoManager.instance != null) //안전검사
-                    VideoManager.instance.PauseVideo();
                 charAnimator.ResetTrigger("Wobble");
                 charAnimator.SetTrigger("Wobble");
                 break;
 
             case "Miss":
                 if (isFalling) return; // 이미 넘어지는 중이면 무시
-                StartCoroutine(FallRoutine());
+                charAnimator.ResetTrigger("Fall");
+                charAnimator.SetTrigger("Fall");
                 break;
         }
 
     }
+
+    public void UpdateAnimatorSpeed(float currentBPM)
+    {
+
+        // 단순 비례 계산식
+        float speed = currentBPM / baseBPM;
+        charAnimator.speed = speed;
+
+        Debug.Log($"[CharactorController] Animator speed set to {speed:F2} (BPM={currentBPM})");
+    }
+}
+
+
+
+/*
+ *
     private System.Collections.IEnumerator FallRoutine()
     {
         isFalling = true;
@@ -72,15 +87,7 @@ public class CharactorController : MonoBehaviour
 
     }
 
-    public void UpdateAnimatorSpeed(float currentBPM)
-    {
 
-        // 단순 비례 계산식
-        float speed = currentBPM / baseBPM;
-        charAnimator.speed = speed;
-
-        Debug.Log($"[CharactorController] Animator speed set to {speed:F2} (BPM={currentBPM})");
-    }
-}
+*/
 
 

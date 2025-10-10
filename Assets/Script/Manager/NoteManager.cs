@@ -38,6 +38,8 @@ public class NoteManager : MonoBehaviour
     public double lastNoteTimeSec = 0; // 마지막 노트의 시간
     private bool isLastNoteProcessed = false;
 
+
+
     void Awake()
     {
         instance = this;
@@ -190,6 +192,14 @@ public class NoteManager : MonoBehaviour
             Debug.Log("[NoteManager] Result UI 활성화 완료");
         }
     }
+
+    //패턴에 기록된 총 노트 수
+    public int GetTotalNoteCount()
+    {
+        return (pattern != null) ? pattern.Count : 0;
+    }
+
+
     // 필요하다면 Note 컴포넌트에 목표 beat/시간 전달(판정/타이밍용)
     // var comp = note.GetComponent<Note>();
     // if (comp != null) comp.Init(targetBeat: e.beat, bpm: bpm);

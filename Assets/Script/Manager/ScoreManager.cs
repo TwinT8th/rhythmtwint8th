@@ -11,18 +11,25 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] TMP_Text txtCombo = null;
     [SerializeField] GameObject goComboImage = null; // Inspector에 Combo 배경 오브젝트 직접 연결
 
-    private Image comboImage; // ★ goComboImage의 Image 컴포넌트를 캐싱해 둘 변수
+    private Image comboImage; // goComboImage의 Image 컴포넌트를 캐싱해 둘 변수
 
     [Header("Score Settings")]
     [SerializeField] int increaseScore = 10;
-    [SerializeField] int comboBonusScore = 5;
+    //[SerializeField] int comboBonusScore = 5; 콤보 더 완화시키면서 삭제
     [SerializeField] float[] weight = null;
 
     private int currentScore = 0;
     private int currentCombo = 0;
+    int maxCombo = 0;
 
     private Animator myAnim;
     private string animScoreUp = "ScoreUp";
+
+
+    // 완화된 콤보 보너스 설정
+    private const float comboRate = 0.002f;   // 콤보당 +0.2%
+    private const float maxComboBonus = 0.3f; // 최대 +30%
+
 
     void Start()
     {
@@ -48,6 +55,14 @@ public class ScoreManager : MonoBehaviour
         else if (p_JudgementState > 3) // Miss 때 콤보 리셋
             ResetCombo();
 
+        // 기본 점수 계산 (콤보 보너스 없음)
+        int t_increaseScore = Mathf.RoundToInt(increaseScore * weight[p_JudgementState]);
+        currentScore += t_increaseScore;
+
+        txtScore.text = string.Format("{0:#,##0}", currentScore);
+        myAnim.SetTrigger(animScoreUp);
+
+        /*
         //콤보 보너스 점수 계산
         int t_currentCombo = GetCurrentCombo();
         int t_bonusComboScore = (t_currentCombo) * comboBonusScore;
@@ -60,12 +75,17 @@ public class ScoreManager : MonoBehaviour
         txtScore.text = string.Format("{0:#,##0}", currentScore);
 
         myAnim.SetTrigger(animScoreUp);
+        */
     }
 
     public void IncreaseCombo(int p_num = 1)
     {
         currentCombo += p_num;
         txtCombo.text = string.Format("{0:#,##0}", currentCombo);
+
+        //max콤보 넘어서면 현재 콤보로 대체해서 기록
+        if(maxCombo < currentCombo)
+            maxCombo = currentCombo;
 
         if (currentCombo >= 1)
         {
@@ -99,9 +119,31 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
+
+    public int GetCurrentScore()
+    {
+        return currentScore;
+    }
+
     public int GetCurrentCombo()
     {
         return currentCombo;
+    }
+
+    public int GetMaxCombo()
+    {
+        return maxCombo;
+    }
+
+
+    //모두 퍼펙트일 시, 받을 수 있는 최고점
+    public int GetMaxPossibleScore()
+    {
+        int totalNotes = NoteManager.instance.GetTotalNoteCount();
+        if (totalNotes <= 0) return 0;
+
+        float perfectWeight = (weight != null && weight.Length > 0) ? weight[0] : 1f;
+        return Mathf.RoundToInt(totalNotes * increaseScore * perfectWeight);
     }
 
     public void ResetCombo()

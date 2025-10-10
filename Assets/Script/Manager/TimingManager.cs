@@ -20,6 +20,7 @@ public class TimingManager : MonoBehaviour
     [Header("중앙 캐릭터")]
     public CharactorController charactor; // Animator 대신 CharacterController 참조
 
+    int[] judgementRecord = new int[5];
 
 
     // Start is called before the first frame update
@@ -54,9 +55,8 @@ public class TimingManager : MonoBehaviour
     {
         int index = GetJudgement(diff);
 
-        // 점수 처리
-        theScore.IncreaseScore(index);
-       
+        theScore.IncreaseScore(index);        // 점수 증가
+        judgementRecord[index]++;        //판정 기록
 
         // 캐릭터 연출
         string[] resultNames = { "Perfect", "Great", "Good", "Bad", "Miss" };
@@ -79,5 +79,17 @@ public class TimingManager : MonoBehaviour
         }
           
     }
+
+    public int[] GetJudgementRecord()
+    {
+        return judgementRecord;
+    }
+
+    public void MissRecord()
+    {
+        judgementRecord[4]++;
+    }
+
+
 
 }

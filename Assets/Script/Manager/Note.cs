@@ -41,6 +41,7 @@ public class Note : MonoBehaviour
             if (judge != null)
                 judgementImage = judge.GetComponent<Image>();
         }
+
     }
 
     void OnEnable()
@@ -73,10 +74,11 @@ public class Note : MonoBehaviour
         double now = AudioSettings.dspTime;
         double lastAllowed = targetTimeSec + (double)TimingManager.instance.missRange;
 
-        // Miss 판정// 여기서 바로 반납 하지 마! (애니가 돌 기회가 사라짐)
+        // 노트를 놓쳤을 떄 Miss 판정 - 여기서 바로 반납X (애니가 돌 기회가 사라짐)
         if (now > lastAllowed)
         {
             ShowJudgementEffect(4); // Miss = index 4
+            TimingManager.instance.MissRecord();
 
             if (TimingManager.instance != null)
                 TimingManager.instance.CharactorAct("Miss");

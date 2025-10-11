@@ -10,6 +10,8 @@ public class VideoManager : MonoBehaviour
     [Header("Video Player")]
     public VideoPlayer videoPlayer;
 
+    [SerializeField] VideoPlayer earth = null;
+
     void Awake()
     {
         if (instance != null && instance != this)
@@ -23,8 +25,7 @@ public class VideoManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (videoPlayer == null)
-            videoPlayer = GetComponent<VideoPlayer>();
+
 
         videoPlayer.isLooping = true;
         videoPlayer.Play();
@@ -51,4 +52,19 @@ public class VideoManager : MonoBehaviour
     {
         return videoPlayer.time;
     }
+
+    public void RestartEarth()
+    {
+        earth.time = 0;
+        earth.Play();
+    }
+
+    public void PauseEarth()
+    {
+        if (earth.isPlaying)
+            earth.Pause();
+    }
+
+
+
 }

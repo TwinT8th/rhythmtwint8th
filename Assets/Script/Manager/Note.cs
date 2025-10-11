@@ -69,31 +69,36 @@ public class Note : MonoBehaviour
 
     void Update()
     {
-        if (isResolved) return;
 
-        double now = AudioSettings.dspTime;
-        double lastAllowed = targetTimeSec + (double)TimingManager.instance.missRange;
-
-        // 노트를 놓쳤을 떄 Miss 판정 - 여기서 바로 반납X (애니가 돌 기회가 사라짐)
-        if (now > lastAllowed)
+        if (GameManager.instance.isStartGame)
         {
-            ShowJudgementEffect(4); // Miss = index 4
-            TimingManager.instance.MissRecord();
 
-            if (TimingManager.instance != null)
-                TimingManager.instance.CharactorAct("Miss");
+            if (isResolved) return;
 
-            // Animator -> SpriteAnimatorBPM 방식으로 Stop 교체
-            if (timingCircleAnim != null) timingCircleAnim.Stop();
-            if (hitMarkerAnim != null) hitMarkerAnim.Stop();
+            double now = AudioSettings.dspTime;
+            double lastAllowed = targetTimeSec + (double)TimingManager.instance.missRange;
 
-            isResolved = true;
+            // 노트를 놓쳤을 떄 Miss 판정 - 여기서 바로 반납X (애니가 돌 기회가 사라짐)
+            if (now > lastAllowed)
+            {
+                ShowJudgementEffect(4); // Miss = index 4
+                TimingManager.instance.MissRecord();
 
-            //애니메이션이 안전하게 재생될 수 있게 시간 간격 둠
-            CancelInvoke(nameof(SafetyReturn));
-            Invoke(nameof(SafetyReturn), 1.0f);
+                if (TimingManager.instance != null)
+                    TimingManager.instance.CharactorAct("Miss");
 
-            //NoteManager.instance.ReturnNote(this);
+                // Animator -> SpriteAnimatorBPM 방식으로 Stop 교체
+                if (timingCircleAnim != null) timingCircleAnim.Stop();
+                if (hitMarkerAnim != null) hitMarkerAnim.Stop();
+
+                isResolved = true;
+
+                //애니메이션이 안전하게 재생될 수 있게 시간 간격 둠
+                CancelInvoke(nameof(SafetyReturn));
+                Invoke(nameof(SafetyReturn), 1.0f);
+
+                //NoteManager.instance.ReturnNote(this);
+            }
         }
     }
 

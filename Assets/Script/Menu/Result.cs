@@ -10,7 +10,7 @@ public class Result : MonoBehaviour
 {
     [Header("UI 참조")]
     [SerializeField] GameObject goUI = null;
- [SerializeField] Animator boardAnimator = null; //Board에 붙은 Animator
+    [SerializeField] Animator boardAnimator = null; //Board에 붙은 Animator
 
     [SerializeField] GameObject ResultImg = null;
     [SerializeField] TMP_Text[] txtJudgement = null; // Board의 자식 TMP 오브젝트들 (Perfect, Great, 등)
@@ -26,6 +26,7 @@ public class Result : MonoBehaviour
     [SerializeField] TMP_Text txtMaxCombo = null;
     [SerializeField] TMP_Text txtRank = null;
 
+    [SerializeField] GameObject StageMenu = null;
 
 
     ScoreManager theScore;
@@ -35,7 +36,7 @@ public class Result : MonoBehaviour
     [Header("애니메이션 타이밍")]
     [SerializeField] private float delayBeforeResults = 0.8f; //Board 애니 끝난 뒤 대기 시간
     [SerializeField] private float delayAfterResults = 0.8f;
-   [SerializeField] private float intervalBtwItems = 0.3f;
+    [SerializeField] private float intervalBtwItems = 0.3f;
 
 
     // Start is called before the first frame update
@@ -98,7 +99,7 @@ public class Result : MonoBehaviour
 
         for (int i = 0; i < txtCount.Length; i++)
         {
-            txtCount[i].text = string.Format("{0:#,##0}",t_judgement[i]);
+            txtCount[i].text = string.Format("{0:#,##0}", t_judgement[i]);
         }
 
         txtScore.text = string.Format("{0:#,##0}", t_currentScore);
@@ -129,7 +130,7 @@ public class Result : MonoBehaviour
             rank = "D";
 
         txtRank.text = rank;
-        txtScoreGaugePer.text = string.Format("{0:0.0}", scoreRate);
+        txtScoreGaugePer.text = string.Format("{0:0}", scoreRate);
 
 
 
@@ -142,13 +143,13 @@ public class Result : MonoBehaviour
 
         if (BackBtn != null)
             BackBtn.SetActive(false);
-    
+
         if (txtJudgement != null)
         {
             foreach (var t in txtJudgement)
                 t.gameObject.SetActive(false);
         }
-        
+
         if (txtRestItems != null)
         {
             foreach (var t in txtRestItems)
@@ -175,7 +176,7 @@ public class Result : MonoBehaviour
         {
             ResultImg.SetActive(true);
             yield return new WaitForSeconds(delayAfterResults);
-            
+
         }
 
         if (txtJudgement != null)
@@ -236,6 +237,14 @@ public class Result : MonoBehaviour
         }
 
         Debug.Log($"[Result] ScoreGauge 애니메이션 완료: {activeBoxes}/10 (scoreRate={scoreRate:F1}%)");
+    }
+
+
+    public void BtnBack()
+    {
+        GameManager.instance.ExitGame();
+        StageMenu.SetActive(true);
+        this.gameObject.SetActive(false);
     }
 
 

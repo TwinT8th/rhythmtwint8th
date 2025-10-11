@@ -13,11 +13,12 @@ public class NoteManager : MonoBehaviour
     public static NoteManager instance;
 
     [Header("음악, 패턴")]
-    public AudioSource music; //BGM0 AudioSource 할당
+    //public AudioSource music; //BGM0 AudioSource 할당
     public float bpm = 90f; //1분당 노트 몇 개 생성 - 곡 교체시 받아오기.
     public double songStartOffsetSec = 0d; //음악 시작 시점(초), 필요 없으면 0
-    //double currentTime = 0d; //노트 생성을 위한 시간을 체크할 변수
     public CSVLoader csvLoader;
+
+    AudioManager theAudio;
 
     [Header("스폰")]
     [SerializeField] Transform noteParent = null; // 노트들을 담을 부모 오브젝트
@@ -43,6 +44,8 @@ public class NoteManager : MonoBehaviour
     void Awake()
     {
         instance = this;
+
+        theAudio = AudioManager.instance;
     }
     private void Start()
     {
@@ -51,13 +54,8 @@ public class NoteManager : MonoBehaviour
         PrecomputeSpawnTimes();// @ 스폰/타겟 시각 모두 계산
         nextIndex = 0;
 
-        // 2) 오디오 예약 시작: 현재 DSP 시각 + leadInSec 에 정확히 시작
-        if (music != null && music.clip != null)
-        {
-            //PlayOnAwake는 꺼져있어야 함 (Inspector)
-            scheduledStartDSPTime = AudioSettings.dspTime + leadInSec;
-            music.PlayScheduled(scheduledStartDSPTime);
-        }
+
+        //GameManager에서 음악 재생 관여
 
     }
 
@@ -66,21 +64,49 @@ public class NoteManager : MonoBehaviour
     void Update()
     {
 
-        if (music == null || music.clip == null) return;
-        if (pattern == null || pattern.Count == 0) return;
 
-        //“노래 시작 기준 0초”로 보정된 현재 시각(초). 이 값이 노래 시작 순간 0이 되도록 맞춰야
-        double nowSec = AudioSettings.dspTime - scheduledStartDSPTime; 
 
-        //offset을 빼서 "패턴 기준 0초"와 정렬
-        nowSec -= songStartOffsetSec;
+        if (GameManager.instance.isStartGame)
+        {
 
-        //같은 프레임에 여러 노트가 대상이면 모두 처리. 스폰 기준으로 비교 (타겟이 아님)
-        while (nextIndex<spawnTimesSec.Count&& nowSec >= spawnTimesSec[nextIndex])
+            if (AudioManager.instance == null) return;
+            if (pattern == null || pattern.Count == 0) return;
+
+            //“노래 시작 기준 0초”로 보정된 현재 시각(초). 이 값이 노래 시작 순간 0이 되도록 맞춰야
+            double nowSec = AudioSettings.dspTime - scheduledStartDSPTime;
+
+            //offset을 빼서 "패턴 기준 0초"와 정렬
+            nowSec -= songStartOffsetSec;
+
+
+            //같은 프레임에 여러 노트가 대상이면 모두 처리. 스폰 기준으로 비교 (타겟이 아님)
+            while (nextIndex < spawnTimesSec.Count && nowSec >= spawnTimesSec[nextIndex])
             {
-            SpawnNote(pattern[nextIndex], nextIndex);
-            nextIndex++;
+                SpawnNote(pattern[nextIndex], nextIndex);
+                nextIndex++;
             }
+        }
+
+
+    }
+
+    public void StartMusic()
+    {
+
+        // 2) 오디오 예약 시작: 현재 DSP 시각 + leadInSec 에 정확히 시작
+        if (theAudio != null)
+        {
+            scheduledStartDSPTime = AudioSettings.dspTime + leadInSec;
+
+            // Inspector에서 bgm 리스트 안에 곡 이름 맞춰둬야 함. 스테이지 매니저 구현하면서 수정
+            theAudio.PlayBGM("BGM0", leadInSec);
+
+            Debug.Log($"[NoteManager] Stage1 예약 재생 예정 (DSP={scheduledStartDSPTime:F3})");
+        }
+        else
+        {
+            Debug.LogWarning("[NoteManager] AudioManager instance가 없습니다. 음악 재생 불가");
+        }
 
     }
 
@@ -142,6 +168,7 @@ public class NoteManager : MonoBehaviour
     }
     public void ReturnNote(Note note)
     {
+
         note.gameObject.SetActive(false);
         ObjectPool.instance.noteQueue.Enqueue(note.gameObject);
 
@@ -162,20 +189,9 @@ public class NoteManager : MonoBehaviour
         float fadeDuration = 3f;
 
         // 오디오 페이드 아웃
-        if (music != null && music.isPlaying)
+        if (AudioManager.instance != null)
         {
-            float startVolume = music.volume;
-            float time = 0f;
-
-            while (time < fadeDuration)
-            {
-                time += Time.deltaTime;
-                music.volume = Mathf.Lerp(startVolume, 0f, time / fadeDuration);
-                yield return null;
-            }
-
-            music.Stop();
-            music.volume = startVolume; // 다음 테스트 대비 초기화
+            yield return StartCoroutine(AudioManager.instance.FadeOutBGM(fadeDuration));
         }
         // 비디오 일시정지
         if (VideoManager.instance != null)
@@ -199,6 +215,26 @@ public class NoteManager : MonoBehaviour
         return (pattern != null) ? pattern.Count : 0;
     }
 
+    public void ResetForReplay()
+    {
+        Debug.Log("[NoteManager] ResetForReplay() 호출됨 - 상태 초기화 시작");
+
+        nextIndex = 0;
+        isLastNoteProcessed = false;
+
+        // 패턴 다시 로드 (CSVLoader에서 다시 읽기)
+        pattern = csvLoader.GetPattern();
+        PrecomputeSpawnTimes();
+
+        // 모든 노트 오브젝트 비활성화 (혹시 남아있는 게 있으면)
+        foreach (Transform child in noteParent)
+            child.gameObject.SetActive(false);
+
+        // 오디오도 멈춤
+        AudioManager.instance.StopBGM();
+
+        Debug.Log("[NoteManager] 초기화 완료 (nextIndex=0, spawnTimes 재계산)");
+    }
 
     // 필요하다면 Note 컴포넌트에 목표 beat/시간 전달(판정/타이밍용)
     // var comp = note.GetComponent<Note>();

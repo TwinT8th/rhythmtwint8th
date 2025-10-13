@@ -18,8 +18,6 @@ public class NoteManager : MonoBehaviour
     public double songStartOffsetSec = 0d; //음악 시작 시점(초), 필요 없으면 0
     public CSVLoader csvLoader;
 
-    AudioManager theAudio;
-
     [Header("스폰")]
     [SerializeField] Transform noteParent = null; // 노트들을 담을 부모 오브젝트
 
@@ -38,24 +36,12 @@ public class NoteManager : MonoBehaviour
 
     public double lastNoteTimeSec = 0; // 마지막 노트의 시간
     private bool isLastNoteProcessed = false;
-
+    int songIndex = 0;
 
 
     void Awake()
     {
         instance = this;
-
-        theAudio = AudioManager.instance;
-    }
-    private void Start()
-    {
-        //CSV에서 패턴 가져오기
-        pattern = csvLoader.GetPattern();
-        PrecomputeSpawnTimes();// @ 스폰/타겟 시각 모두 계산
-        nextIndex = 0;
-
-
-        //GameManager에서 음악 재생 관여
 
     }
 
@@ -93,22 +79,51 @@ public class NoteManager : MonoBehaviour
     public void StartMusic()
     {
 
-        // 2) 오디오 예약 시작: 현재 DSP 시각 + leadInSec 에 정확히 시작
-        if (theAudio != null)
+        // GameManager에서 현재 선택된 곡 인덱스 받아오기
+        songIndex = GameManager.instance.currentSongIndex;
+
+
+        //CSV패턴 로드
+
+        pattern = csvLoader.GetPattern(songIndex);
+        if(pattern == null || pattern.Count == 0)
+        {
+            Debug.LogError($"[NoteManager] pattern{songIndex}.csv 로드 실패!");
+            return;
+        }
+
+        // 2) 스폰타임 계산
+        PrecomputeSpawnTimes();
+        nextIndex = 0;
+
+        // 오디오 예약 시작: 현재 DSP 시각 + leadInSec 에 정확히 시작
+        if (AudioManager.instance != null)
         {
             scheduledStartDSPTime = AudioSettings.dspTime + leadInSec;
 
             // Inspector에서 bgm 리스트 안에 곡 이름 맞춰둬야 함. 스테이지 매니저 구현하면서 수정
-            theAudio.PlayBGM("BGM0", leadInSec);
+            AudioManager.instance.PlayBGM("BGM" + songIndex, leadInSec);
+            Debug.Log($"[NoteManager] BGM{songIndex} + pattern{songIndex}.csv 시작 예정");
 
-            Debug.Log($"[NoteManager] Stage1 예약 재생 예정 (DSP={scheduledStartDSPTime:F3})");
         }
+
         else
         {
             Debug.LogWarning("[NoteManager] AudioManager instance가 없습니다. 음악 재생 불가");
         }
 
     }
+
+    private void LoadPattern(string fileName)
+    {
+        TextAsset patternFile = Resources.Load<TextAsset>(fileName);
+        if (patternFile == null)
+        {
+            Debug.LogError($"[NoteManager] 패턴 파일 '{fileName}.csv'을(를) 찾을 수 없습니다!");
+            return;
+        }
+    }
+
 
     private void PrecomputeSpawnTimes() //CSV에서 가져온 beat를 실제 절대시간(초)로 한번에 계산해두는 과정
     {
@@ -138,6 +153,7 @@ public class NoteManager : MonoBehaviour
 
         Debug.Log($"[NoteManager] Last Note Time = {lastNoteTimeSec:F3}s");
     }
+
 
 
     /*
@@ -223,7 +239,7 @@ public class NoteManager : MonoBehaviour
         isLastNoteProcessed = false;
 
         // 패턴 다시 로드 (CSVLoader에서 다시 읽기)
-        pattern = csvLoader.GetPattern();
+        pattern = csvLoader.GetPattern(songIndex);
         PrecomputeSpawnTimes();
 
         // 모든 노트 오브젝트 비활성화 (혹시 남아있는 게 있으면)
@@ -236,9 +252,6 @@ public class NoteManager : MonoBehaviour
         Debug.Log("[NoteManager] 초기화 완료 (nextIndex=0, spawnTimes 재계산)");
     }
 
-    // 필요하다면 Note 컴포넌트에 목표 beat/시간 전달(판정/타이밍용)
-    // var comp = note.GetComponent<Note>();
-    // if (comp != null) comp.Init(targetBeat: e.beat, bpm: bpm);
 }
 
 

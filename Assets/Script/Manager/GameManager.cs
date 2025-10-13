@@ -7,11 +7,13 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] GameObject[] goGameUI = null;
 
-
-
     public static GameManager instance;
 
     public bool isStartGame = false;
+    public int currentSongIndex = 0;
+
+    ScoreManager theScore;
+    TimingManager theTiming;
 
     // Start is called before the first frame update
     void Awake()
@@ -19,16 +21,28 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
-    public void StartGame()
+    void Start()
+    {
+        theScore= FindObjectOfType<ScoreManager>();
+        theTiming = FindObjectOfType<TimingManager>();
+
+    }
+
+    public void StartGame(int p_songNum)
     {
 
-        for(int i = 0; i< goGameUI.Length; i++)
+        //점수 및 콤보 초기화
+
+        theScore.ResetScore();
+        theScore.ResetCombo();
+        theTiming.ResetJudgementRecord();
+
+        for (int i = 0; i< goGameUI.Length; i++)
         {
             goGameUI[i].gameObject.SetActive(true);
         }
         isStartGame = true;
         Debug.Log("[GameManager] 게임 시작됨!");
-
 
         if (NoteManager.instance != null)
             NoteManager.instance.ResetForReplay();
@@ -45,8 +59,25 @@ public class GameManager : MonoBehaviour
         {
             goGameUI[i].gameObject.SetActive(false);
         }
+
+        // 재생 중인 노트매니저 초기화
+        if (NoteManager.instance != null)
+        {
+            NoteManager.instance.StopAllCoroutines(); // 혹시 잔여 코루틴 있으면 중단
+            NoteManager.instance.ResetForReplay();    // 상태 초기화
+        }
+
+        // BGM도 멈추기
+        if (AudioManager.instance != null)
+            AudioManager.instance.StopBGM();
+
+        // 게임 종료 플래그
         isStartGame = false;
-        Debug.Log("[GameManager] 게임 끝");
+
+        // 현재 곡 index도 초기화
+        currentSongIndex = 0;
+
+        Debug.Log("[GameManager] 게임 종료 및 인덱스 초기화 완료");
 
     }
 

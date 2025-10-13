@@ -48,7 +48,66 @@ public class CSVLoader : MonoBehaviour
     /// <summary>
     /// 다른 스크립트에서 읽을 때 사용. (참조를 그대로 넘기므로 수정 주의)
     /// </summary>
-    public List<NoteEvent> GetPattern() => pattern;
+    public List<NoteEvent> GetPattern(int songIndex)
+    {
+        string fileName = $"pattern{songIndex}"; // 예: pattern0, pattern1 ...
+        TextAsset patternFile = Resources.Load<TextAsset>(fileName);
+
+        if (patternFile == null)
+        {
+            Debug.LogError($"[CSVLoader] 패턴 파일 '{fileName}.csv'을(를) 찾을 수 없습니다!");
+            return new List<NoteEvent>();
+        }
+
+        // 기존 TryLoad() 로직 일부 재활용
+        using (var reader = new StringReader(patternFile.text))
+        {
+            pattern.Clear();
+
+            string headerLine = reader.ReadLine();
+            if (headerLine == null)
+            {
+                Debug.LogError("[CSVLoader] CSV가 비어 있습니다(헤더 없음).");
+                return pattern;
+            }
+
+            char sep = DetectSeparator(headerLine);
+            if (!TryParseHeader(headerLine, sep, out int beatIdx, out int xIdx, out int yIdx))
+            {
+                Debug.LogError("[CSVLoader] 헤더에 'beat', 'x', 'y'가 모두 포함되어야 합니다.");
+                return pattern;
+            }
+
+            string line;
+            int lineNumber = 1;
+            while ((line = reader.ReadLine()) != null)
+            {
+                lineNumber++;
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (IsComment(line)) continue;
+
+                string[] cols = line.Split(sep);
+                TrimAll(cols);
+
+                int needed = Mathf.Max(beatIdx, xIdx, yIdx);
+                if (cols.Length <= needed)
+                {
+                    Debug.LogWarning($"[CSVLoader] {lineNumber}행: 열 개수 부족 → 건너뜀");
+                    continue;
+                }
+
+                if (!float.TryParse(cols[beatIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out float beat)) continue;
+                if (!float.TryParse(cols[xIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out float x)) continue;
+                if (!float.TryParse(cols[yIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out float y)) continue;
+
+                pattern.Add(new NoteEvent(beat, x, y));
+            }
+        }
+
+        pattern.Sort((a, b) => a.beat.CompareTo(b.beat));
+        Debug.Log($"[CSVLoader] 'pattern{songIndex}.csv' 로드 완료 (총 {pattern.Count}개).");
+        return pattern;
+    }
 
     private void Awake()
     {

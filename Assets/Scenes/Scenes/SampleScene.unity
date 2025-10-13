@@ -1480,6 +1480,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 425858388}
   m_CullTransparentMesh: 1
+--- !u!1 &437863941
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 437863943}
+  - component: {fileID: 437863942}
+  m_Layer: 0
+  m_Name: StageManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &437863942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437863941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 863b2e6b79b58294eb6f7a793eb2a147, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &437863943
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437863941}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 540, y: 577.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &465227673
 GameObject:
   m_ObjectHideFlags: 0
@@ -6281,7 +6325,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1494882244
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6315,7 +6359,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TitleMenu: {fileID: 790107013}
-  playBtnAnim: {fileID: 0}
+  playBtnAnim: {fileID: 140872685}
   songList:
   - name: "\uC660\uC9C0 \uBAA8\uB974\uAC8C \uC090\uB057,"
     sprite: {fileID: 21300000, guid: 817ed09356a2ce3459ec737a4ff04c64, type: 3}
@@ -8234,6 +8278,7 @@ MonoBehaviour:
   - {fileID: 1521571237}
   - {fileID: 101245695}
   isStartGame: 0
+  currentSongIndex: 0
 --- !u!4 &2005658040
 Transform:
   m_ObjectHideFlags: 0
@@ -8360,7 +8405,7 @@ VideoPlayer:
   m_EnabledAudioTracks: 
   m_DirectAudioMutes: 
   m_ControlledAudioTrackCount: 0
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_SkipOnDrop: 1
   m_Looping: 0
   m_WaitForFirstFrame: 1
@@ -8664,3 +8709,4 @@ SceneRoots:
   - {fileID: 1152569944}
   - {fileID: 1911328186}
   - {fileID: 2005658040}
+  - {fileID: 437863943}

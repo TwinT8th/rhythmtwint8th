@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class ScoreManager : MonoBehaviour
 {
@@ -145,7 +146,11 @@ public class ScoreManager : MonoBehaviour
         float perfectWeight = (weight != null && weight.Length > 0) ? weight[0] : 1f;
         return Mathf.RoundToInt(totalNotes * increaseScore * perfectWeight);
     }
-
+    public void ResetScore()
+    {
+        currentScore = 0;
+        maxCombo = 0;
+    }
     public void ResetCombo()
     {
         currentCombo = 0;

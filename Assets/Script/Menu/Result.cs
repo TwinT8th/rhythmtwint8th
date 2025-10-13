@@ -244,7 +244,7 @@ public class Result : MonoBehaviour
     {
         GameManager.instance.ExitGame();
         StageMenu.SetActive(true);
-        this.gameObject.SetActive(false);
+        goUI.SetActive(false); 
     }
 
 

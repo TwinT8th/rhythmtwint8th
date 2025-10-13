@@ -38,6 +38,9 @@ public class StageMenu : MonoBehaviour
 
     public void BtnNext()
     {
+
+        //AudioManager.instance.PlaySFX("Touch");
+
         if (++currentSong > songList.Length - 1)
             currentSong = 0;
         SettingSong();
@@ -46,7 +49,9 @@ public class StageMenu : MonoBehaviour
 
     public void BtnPrior()
     {
-        if(--currentSong < 0)
+        //AudioManager.instance.PlaySFX("Touch");
+
+        if (--currentSong < 0)
             currentSong = songList.Length - 1;
         SettingSong();
 
@@ -57,7 +62,7 @@ public class StageMenu : MonoBehaviour
         txtSongName.text = songList[currentSong].name;
         imgDisk.sprite = songList[currentSong].sprite;
 
-        //StartCoroutine(SettingSongAnim());
+        AudioManager.instance.PlayBGM("BGM" + currentSong);
     }
 
 
@@ -65,6 +70,9 @@ public class StageMenu : MonoBehaviour
     public void BtnPlay ()
     {
         StartCoroutine(PlayBtn());
+        GameManager.instance.currentSongIndex = currentSong;
+        GameManager.instance.StartGame(currentSong);
+
         this.gameObject.SetActive(false);
     }
 
@@ -79,7 +87,10 @@ public class StageMenu : MonoBehaviour
     {
         playBtnAnim.SetTrigger("Click");
         yield return new WaitForSeconds(1f);
-        GameManager.instance.StartGame();
+
+        AudioManager.instance.StopBGM();//ÇÁ¸®ºä Áß´Ü
+
+        GameManager.instance.StartGame(currentSong);
     }
 
 

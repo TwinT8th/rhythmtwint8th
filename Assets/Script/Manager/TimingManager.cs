@@ -89,7 +89,13 @@ public class TimingManager : MonoBehaviour
     {
         judgementRecord[4]++;
     }
+    public void ResetJudgementRecord()
+    {
+        for (int i = 0; i < judgementRecord.Length; i++)
+            judgementRecord[i] = 0;
 
+        Debug.Log("[TimingManager] 판정 기록 초기화 완료");
+    }
 
 
 }

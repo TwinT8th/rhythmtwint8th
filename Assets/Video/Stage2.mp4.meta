@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 520b77701dd401c4ba3c761943a25f09
+guid: 3a2b5fdcca2aeda468ed4ce7f046bf5f
 VideoClipImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -14,39 +14,30 @@ VideoClipImporter:
   importAudio: 1
   targetSettings:
     0:
-      enableTranscoding: 1
-      codec: 2
+      enableTranscoding: 0
+      codec: 0
       resizeFormat: 0
       aspectRatio: 0
-      customWidth: 1920
-      customHeight: 1080
-      bitrateMode: 2
-      spatialQuality: 2
-    1:
-      enableTranscoding: 1
-      codec: 2
-      resizeFormat: 0
-      aspectRatio: 0
-      customWidth: 1920
-      customHeight: 1080
+      customWidth: 1280
+      customHeight: 550
       bitrateMode: 2
       spatialQuality: 2
     4:
-      enableTranscoding: 1
-      codec: 2
+      enableTranscoding: 0
+      codec: 0
       resizeFormat: 0
       aspectRatio: 0
-      customWidth: 1920
-      customHeight: 1080
+      customWidth: 1280
+      customHeight: 550
       bitrateMode: 2
       spatialQuality: 2
     7:
-      enableTranscoding: 1
-      codec: 2
+      enableTranscoding: 0
+      codec: 0
       resizeFormat: 0
       aspectRatio: 0
-      customWidth: 1920
-      customHeight: 1080
+      customWidth: 1280
+      customHeight: 550
       bitrateMode: 2
       spatialQuality: 2
   userData: 

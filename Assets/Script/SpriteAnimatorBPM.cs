@@ -36,7 +36,7 @@ public class SpriteAnimatorBPM : MonoBehaviour
             }
             else
             {
-                Debug.Log("[SpriteAnimatorBPM] Animation finished");
+                //Debug.Log("[SpriteAnimatorBPM] Animation finished");
                 currentFrame = frames.Length - 1;
                 ApplyFrame();
                 isPlaying = false;
@@ -59,7 +59,7 @@ public class SpriteAnimatorBPM : MonoBehaviour
 
         if (targetImage != null) targetImage.enabled = true;
         if (targetRenderer != null) targetRenderer.enabled = true;
-        Debug.Log($"[{name}] Play() ½ÇÇàµÊ, frames={frames.Length}, frameDuration={frameDuration}");
+        //Debug.Log($"[{name}] Play() ½ÇÇàµÊ, frames={frames.Length}, frameDuration={frameDuration}");
     }
 
     /// <summary>

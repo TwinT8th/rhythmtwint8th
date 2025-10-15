@@ -38,6 +38,8 @@ public class NoteManager : MonoBehaviour
     private bool isLastNoteProcessed = false;
     int songIndex = 0;
 
+//    StageVideoController stageVideo;
+
 
     void Awake()
     {
@@ -45,6 +47,11 @@ public class NoteManager : MonoBehaviour
 
     }
 
+
+    void Start()
+    {
+   //     stageVideo = FindObjectOfType<StageVideoController>();
+    }
 
     // Update is called once per frame
     void Update()
@@ -210,9 +217,12 @@ public class NoteManager : MonoBehaviour
             yield return StartCoroutine(AudioManager.instance.FadeOutBGM(fadeDuration));
         }
         // 비디오 일시정지
-        if (VideoManager.instance != null)
-            VideoManager.instance.PauseVideo();
-
+        StageVideoController stageVideo = FindObjectOfType<StageVideoController>();
+        if (stageVideo != null)
+        {
+            stageVideo.PauseVideo();   // 완전히 정지
+                                      // 또는 stageVideo.PauseVideo(); (일시정지만 하고 싶다면)
+        }
         // 페이드 시간 대기
         yield return new WaitForSeconds(fadeDuration);
 
@@ -233,7 +243,7 @@ public class NoteManager : MonoBehaviour
 
     public void ResetForReplay()
     {
-        Debug.Log("[NoteManager] ResetForReplay() 호출됨 - 상태 초기화 시작");
+        //Debug.Log("[NoteManager] ResetForReplay() 호출됨 - 상태 초기화 시작");
 
         nextIndex = 0;
         isLastNoteProcessed = false;

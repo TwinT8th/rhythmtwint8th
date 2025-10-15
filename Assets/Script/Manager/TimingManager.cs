@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ public class TimingManager : MonoBehaviour
 
     public static TimingManager instance;
 
-    [Header("ÆÇÁ¤ ¹üÀ§(ÃÊ ´ÜÀ§)")]
+    [Header("íŒì • ë²”ìœ„(ì´ˆ ë‹¨ìœ„)")]
     public float perfectRange = 0.05f;
     public float greatRange = 0.1f;
     public float goodRange = 0.2f;
@@ -17,8 +17,8 @@ public class TimingManager : MonoBehaviour
     public float missRange = 0.4f;
 
 
-    [Header("Áß¾Ó Ä³¸¯ÅÍ")]
-    public CharactorController charactor; // Animator ´ë½Å CharacterController ÂüÁ¶
+    [Header("ì¤‘ì•™ ìºë¦­í„°")]
+    public CharactorController charactor; // Animator ëŒ€ì‹  CharacterController ì°¸ì¡°
 
     int[] judgementRecord = new int[5];
 
@@ -40,7 +40,7 @@ public class TimingManager : MonoBehaviour
     {
         diff = Mathf.Abs((float)diff);
 
-        // (¹üÀ§, °á°ú) ½ÖÀ» ¹è¿­·Î Á¤ÀÇ
+        // (ë²”ìœ„, ê²°ê³¼) ìŒì„ ë°°ì—´ë¡œ ì •ì˜
         float[] ranges = { perfectRange, greatRange, goodRange, badRange, missRange };
 
         for (int i = 0; i < ranges.Length; i++)
@@ -53,17 +53,23 @@ public class TimingManager : MonoBehaviour
     }
     public void ProcessJudgement(Note note, double diff)
     {
+
         int index = GetJudgement(diff);
 
-        theScore.IncreaseScore(index);        // Á¡¼ö Áõ°¡
-        judgementRecord[index]++;        //ÆÇÁ¤ ±â·Ï
-
-        // Ä³¸¯ÅÍ ¿¬Ãâ
+        // ìºë¦­í„° ì—°ì¶œ
         string[] resultNames = { "Perfect", "Great", "Good", "Bad", "Miss" };
         string result = resultNames[index];
+
+        Debug.Log($"[TimingManager] íŒì •: {result}, charactor={(charactor ? charactor.name : "NULL")}");
+
+
+        theScore.IncreaseScore(index);        // ì ìˆ˜ ì¦ê°€
+        judgementRecord[index]++;        //íŒì • ê¸°ë¡
+
+
         CharactorAct(result);
 
-        // ÆÇÁ¤ ÀÌÆåÆ® Ç¥½Ã
+        // íŒì • ì´í™íŠ¸ í‘œì‹œ
         if (note != null)
             note.ShowJudgementEffect(index);
 
@@ -94,7 +100,7 @@ public class TimingManager : MonoBehaviour
         for (int i = 0; i < judgementRecord.Length; i++)
             judgementRecord[i] = 0;
 
-        Debug.Log("[TimingManager] ÆÇÁ¤ ±â·Ï ÃÊ±âÈ­ ¿Ï·á");
+        //Debug.Log("[TimingManager] íŒì • ê¸°ë¡ ì´ˆê¸°í™” ì™„ë£Œ");
     }
 
 

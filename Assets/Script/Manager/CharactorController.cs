@@ -20,10 +20,19 @@ public class CharactorController : MonoBehaviour
     {
         UpdateAnimatorSpeed(NoteManager.instance.bpm);
     }
-
-
+    void OnEnable()
+    {
+        if (charAnimator != null)
+        {
+            charAnimator.Rebind();
+            charAnimator.Update(0f);
+            charAnimator.SetTrigger("Walk"); // 기본 Idle/Walk 등으로 지정
+        }
+    }
     public void JudgementAct(string result)
     {
+
+        Debug.Log($"[CharactorController] JudgementAct 호출됨- result={result}");
         if (isFalling) return; //넘어지는 중엔 어떤 판정도 무시
 
         switch (result)
@@ -42,6 +51,7 @@ public class CharactorController : MonoBehaviour
                 if (isFalling) return; // 이미 넘어지는 중이면 무시
                 charAnimator.ResetTrigger("Fall");
                 charAnimator.SetTrigger("Fall");
+                isFalling = true;
                 break;
         }
 
@@ -56,7 +66,16 @@ public class CharactorController : MonoBehaviour
 
         Debug.Log($"[CharactorController] Animator speed set to {speed:F2} (BPM={currentBPM})");
     }
+
+
+
+    public void CanJudge()
+    {
+        isFalling = false;
+        Debug.Log("[CharactorController] 일어남 애니 종료 → 입력 해제");
+    }
 }
+
 
 
 

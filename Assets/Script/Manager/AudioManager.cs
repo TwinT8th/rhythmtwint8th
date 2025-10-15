@@ -75,7 +75,7 @@ public class AudioManager : MonoBehaviour
         else
         {
             bgmPlayer.Play();
-            Debug.Log($"[AudioManager] '{name}' 즉시 재생");
+            //Debug.Log($"[AudioManager] '{name}' 즉시 재생");
         }
     }
 

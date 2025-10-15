@@ -105,7 +105,7 @@ public class CSVLoader : MonoBehaviour
         }
 
         pattern.Sort((a, b) => a.beat.CompareTo(b.beat));
-        Debug.Log($"[CSVLoader] 'pattern{songIndex}.csv' 로드 완료 (총 {pattern.Count}개).");
+        //Debug.Log($"[CSVLoader] 'pattern{songIndex}.csv' 로드 완료 (총 {pattern.Count}개).");
         return pattern;
     }
 

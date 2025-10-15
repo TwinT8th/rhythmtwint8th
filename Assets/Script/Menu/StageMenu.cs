@@ -17,7 +17,7 @@ public class StageMenu : MonoBehaviour
 {
     [SerializeField] GameObject TitleMenu = null;
     [SerializeField] Animator playBtnAnim = null;
-   // [SerializeField] Animator spinningDisk = null;
+    [SerializeField] Animator spinningDisk = null;
 
     // Start is called before the first frame update
 
@@ -33,6 +33,21 @@ public class StageMenu : MonoBehaviour
     void Start()
     {
         SettingSong();
+    }
+
+    void OnEnable()
+    {
+        if (spinningDisk != null)
+        {
+            // Animator 리셋
+            spinningDisk.Rebind();
+            spinningDisk.Update(0);
+
+            // Transform 회전값도 초기화
+            spinningDisk.transform.rotation = Quaternion.identity;
+
+            Debug.Log("[StageMenu] Disk 회전 초기화 완료");
+        }
     }
 
 

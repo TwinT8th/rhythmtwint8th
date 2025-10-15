@@ -14,6 +14,9 @@ public class GameManager : MonoBehaviour
 
     ScoreManager theScore;
     TimingManager theTiming;
+    StageManager theStage;
+    StageVideoController stageVideo;
+
 
     // Start is called before the first frame update
     void Awake()
@@ -25,7 +28,8 @@ public class GameManager : MonoBehaviour
     {
         theScore= FindObjectOfType<ScoreManager>();
         theTiming = FindObjectOfType<TimingManager>();
-
+        theStage = FindObjectOfType<StageManager>();
+        stageVideo = FindObjectOfType<StageVideoController>();
     }
 
     public void StartGame(int p_songNum)
@@ -37,10 +41,22 @@ public class GameManager : MonoBehaviour
         theScore.ResetCombo();
         theTiming.ResetJudgementRecord();
 
+        currentSongIndex = p_songNum;
+
+
+        // StageManager에 스테이지 로드 명령
+        if (theStage != null)
+            theStage.LoadSong(p_songNum);
+        else
+            Debug.LogError("[GameManager] StageManager.instance가 null입니다!");
+
         for (int i = 0; i< goGameUI.Length; i++)
         {
             goGameUI[i].gameObject.SetActive(true);
         }
+
+        stageVideo.RestartVideo();
+
         isStartGame = true;
         Debug.Log("[GameManager] 게임 시작됨!");
 
@@ -76,7 +92,10 @@ public class GameManager : MonoBehaviour
 
         // 현재 곡 index도 초기화
         currentSongIndex = 0;
-
+        
+        //캐릭터 끄기
+        if (StageManager.instance != null)
+            StageManager.instance.DeactivateAllCharacters();
         Debug.Log("[GameManager] 게임 종료 및 인덱스 초기화 완료");
 
     }

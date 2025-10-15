@@ -40,7 +40,7 @@ public class HitMarker : MonoBehaviour
     public void OnButtonClick()
     {
 
-        Debug.Log($"[HitMarker] 버튼 눌림 at DSP={AudioSettings.dspTime:F3}", this);
+        //Debug.Log($"[HitMarker] 버튼 눌림 at DSP={AudioSettings.dspTime:F3}", this);
 
         if (parentNote !=null)
         {

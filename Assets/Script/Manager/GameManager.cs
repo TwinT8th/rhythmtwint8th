@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -16,7 +17,8 @@ public class GameManager : MonoBehaviour
     TimingManager theTiming;
     StageManager theStage;
     StageVideoController stageVideo;
-
+    Result theResult;
+  //  StageMenu theStageMenu;
 
     // Start is called before the first frame update
     void Awake()
@@ -30,6 +32,8 @@ public class GameManager : MonoBehaviour
         theTiming = FindObjectOfType<TimingManager>();
         theStage = FindObjectOfType<StageManager>();
         stageVideo = FindObjectOfType<StageVideoController>();
+        theResult = FindObjectOfType<Result>();
+      //  theStageMenu =  FindObjectOfType<StageMenu>();
     }
 
     public void StartGame(int p_songNum)
@@ -43,6 +47,7 @@ public class GameManager : MonoBehaviour
 
         currentSongIndex = p_songNum;
 
+        theResult.SetCurrentSong(p_songNum);
 
         // StageManager에 스테이지 로드 명령
         if (theStage != null)
@@ -97,7 +102,6 @@ public class GameManager : MonoBehaviour
         if (StageManager.instance != null)
             StageManager.instance.DeactivateAllCharacters();
         Debug.Log("[GameManager] 게임 종료 및 인덱스 초기화 완료");
-
     }
 
 }

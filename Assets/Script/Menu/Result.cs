@@ -29,8 +29,17 @@ public class Result : MonoBehaviour
     [SerializeField] GameObject StageMenu = null;
 
 
+    int currentSong = 0;
+    //현재 선택된 곡 인덱스 용
+    public void SetCurrentSong(int p_songNum)
+    {
+        currentSong = p_songNum;
+    }
+
+
     ScoreManager theScore;
     TimingManager theTiming;
+    DatabaseManager theDatabase;
 
 
     [Header("애니메이션 타이밍")]
@@ -44,6 +53,7 @@ public class Result : MonoBehaviour
     {
         theScore = FindObjectOfType<ScoreManager>();
         theTiming = FindObjectOfType<TimingManager>();
+        theDatabase = FindObjectOfType<DatabaseManager>();
 
         //시작 시 모든 항목 숨기기
         if (txtJudgement != null)
@@ -113,7 +123,16 @@ public class Result : MonoBehaviour
         float scoreRate = (maxScore > 0) ? ((float)currentScore / maxScore) * 100f : 0f;
         scoreRate = Mathf.Floor(scoreRate); // 정수로 변환
 
-        // 💯 스코어 기반 랭크 계산
+        // * DB : 최고 기록일 경우 데이터 베이스에 기록
+        if(t_currentScore > theDatabase.score[currentSong])
+        { 
+            theDatabase.score[currentSong] = t_currentScore;
+            theDatabase.SaveScore();
+        }
+
+
+
+        // 스코어 기반 랭크 계산
         string rank;
 
         if (scoreRate >= 99f)
@@ -132,7 +151,21 @@ public class Result : MonoBehaviour
         txtRank.text = rank;
         txtScoreGaugePer.text = string.Format("{0:0}", scoreRate);
 
+        // 랭크 저장 로직 (기존보다 높은 랭크만 갱신)
+        string prevRank = theDatabase.rank[currentSong];
+        int prevRankValue = GetRankValue(prevRank);
+        int newRankValue = GetRankValue(rank);
 
+        if (newRankValue > prevRankValue)
+        {
+            theDatabase.rank[currentSong] = rank;
+            theDatabase.SaveRank();
+            Debug.Log($"[Result] 랭크 갱신됨: {prevRank} → {rank}");
+        }
+        else
+        {
+            Debug.Log($"[Result] 기존 랭크 유지: {prevRank} (현재: {rank})");
+        }
 
         //2.Board 자식 TMP들 모두 숨기기
         if (ResultImg != null)
@@ -215,7 +248,7 @@ public class Result : MonoBehaviour
             BackBtn.SetActive(true);
         }
 
-        Debug.Log("[Result] 모든 결과 텍스트 활성화 완료");
+       
     }
 
     // 점수 퍼센트에 따라 게이지 박스를 순차적으로 켜는 코루틴
@@ -242,12 +275,25 @@ public class Result : MonoBehaviour
 
     public void BtnBack()
     {
-        GameManager.instance.ExitGame();
+
         StageMenu.SetActive(true);
-        goUI.SetActive(false); 
+        goUI.SetActive(false);
+        GameManager.instance.ExitGame();
     }
 
-
+    private int GetRankValue(string rank)
+    {
+        switch (rank)
+        {
+            case "SSS": return 6;
+            case "S": return 5;
+            case "A": return 4;
+            case "B": return 3;
+            case "C": return 2;
+            case "D": return 1;
+            default: return 0; // 아직 기록이 없는 경우
+        }
+    }
 }
 
 

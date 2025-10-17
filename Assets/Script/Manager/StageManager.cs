@@ -42,6 +42,7 @@ public class StageManager : MonoBehaviour
     StageVideoController stageVideo;
 
 
+
     void Awake()
     {
         instance = this;
@@ -50,6 +51,7 @@ public class StageManager : MonoBehaviour
 
     void Start()
     {
+
         stageVideo = FindObjectOfType<StageVideoController>();
     }
     /// <summary>

@@ -25,30 +25,26 @@ public class StageMenu : MonoBehaviour
     [SerializeField] Song[] songList = null;
 
     [SerializeField] TMP_Text txtSongName = null;
+    [SerializeField] TMP_Text txtSongScore = null;
+    [SerializeField] TMP_Text txtSongRank = null; 
     [SerializeField] Image imgDisk = null;
 
 
     int currentSong = 0;
 
-    void Start()
-    {
-        SettingSong();
-    }
+    DatabaseManager theDatabase;
+
+
+   
 
     void OnEnable()
     {
-        if (spinningDisk != null)
-        {
-            // Animator 리셋
-            spinningDisk.Rebind();
-            spinningDisk.Update(0);
+        if(theDatabase == null)
+          theDatabase = FindObjectOfType<DatabaseManager>();
+        SettingSong();
 
-            // Transform 회전값도 초기화
-            spinningDisk.transform.rotation = Quaternion.identity;
-
-            Debug.Log("[StageMenu] Disk 회전 초기화 완료");
-        }
     }
+
 
 
     public void BtnNext()
@@ -76,6 +72,8 @@ public class StageMenu : MonoBehaviour
     { 
         txtSongName.text = songList[currentSong].name;
         imgDisk.sprite = songList[currentSong].sprite;
+        txtSongScore.text = string.Format("{0:#,##0}", theDatabase.score[currentSong]);
+        txtSongRank.text = theDatabase.rank[currentSong];
 
         AudioManager.instance.PlayBGM("BGM" + currentSong);
     }
@@ -84,6 +82,18 @@ public class StageMenu : MonoBehaviour
 
     public void BtnPlay ()
     {
+        if (spinningDisk != null)
+        {
+            // Animator 리셋
+            spinningDisk.Rebind();
+            spinningDisk.Update(0);
+
+            // Transform 회전값도 초기화
+            spinningDisk.transform.rotation = Quaternion.identity;
+
+            Debug.Log("[StageMenu] Disk 회전 초기화 완료");
+        }
+
         StartCoroutine(PlayBtn());
         GameManager.instance.currentSongIndex = currentSong;
         GameManager.instance.StartGame(currentSong);
@@ -93,6 +103,23 @@ public class StageMenu : MonoBehaviour
 
     public void BtnTitle()
     {
+
+
+        AudioManager.instance.StopBGM(); // 프리뷰 중단
+
+        if (spinningDisk != null)
+        {
+            // Animator 리셋
+            spinningDisk.Rebind();
+            spinningDisk.Update(0);
+
+            // Transform 회전값도 초기화
+            spinningDisk.transform.rotation = Quaternion.identity;
+
+            Debug.Log("[StageMenu] Disk 회전 초기화 완료");
+        }
+
+
         TitleMenu.SetActive(true);
         this.gameObject.SetActive(false);
     }

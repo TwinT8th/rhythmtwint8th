@@ -231,7 +231,6 @@ public class NoteManager : MonoBehaviour
         if (resultUI != null)
         {
             resultUI.ShowResult();
-            Debug.Log("[NoteManager] Result UI 활성화 완료");
         }
     }
 
@@ -259,7 +258,6 @@ public class NoteManager : MonoBehaviour
         // 오디오도 멈춤
         AudioManager.instance.StopBGM();
 
-        Debug.Log("[NoteManager] 초기화 완료 (nextIndex=0, spawnTimes 재계산)");
     }
 
 }

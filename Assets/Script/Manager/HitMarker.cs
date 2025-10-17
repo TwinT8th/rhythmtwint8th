@@ -1,65 +1,46 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-
-
-public class HitMarker : MonoBehaviour
+public class HitMarker : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
+    private Note parentNote;
+    [SerializeField] private Image markerImage;
 
-    private Button hitBtn;
-    private Note parentNote;   // 부모 Note 스크립트 참조
-
-    [SerializeField] private Image markerImage; //MarkerSprite 자식 Image
+    private bool isHolding = false;
 
     void Awake()
     {
-        hitBtn = GetComponent<Button>();
         parentNote = GetComponentInParent<Note>();
 
-        if (hitBtn != null)
-            hitBtn.onClick.AddListener(OnButtonClick);
-        
-
-        markerImage.enabled = true;
-
         if (markerImage == null)
-        {
-            markerImage = GetComponentInChildren<Image>(); // MarkerSprite 자동 검색
-            //Debug.Log($"[HitMarker] markerImage 자동 할당: {(markerImage != null ? markerImage.name : "null")}", this);
-        }
-        if (markerImage != null)
-        {
-            markerImage.enabled = true;
-        }
+            markerImage = GetComponentInChildren<Image>();
 
+        if (markerImage != null)
+            markerImage.enabled = true;
     }
 
-    public void OnButtonClick()
+    // 누를 때 (Button의 onClick 대신)
+    public void OnPointerDown(PointerEventData eventData)
     {
+        isHolding = true;
+        if (parentNote != null)
+            parentNote.OnHit();  // 기존 동작 그대로
 
-        //Debug.Log($"[HitMarker] 버튼 눌림 at DSP={AudioSettings.dspTime:F3}", this);
+        // 단타형 노트면 바로 사라져도 됨
+        gameObject.SetActive(false);
+    }
 
-        if (parentNote !=null)
-        {
-            parentNote.OnHit(); //부모 Note에게 "눌림"전달
-      
-        }
-
-        gameObject.SetActive(false); ; // 눌린 순간 버튼 자체도 꺼버림
+    // 손을 뗄 때 (롱노트용)
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        isHolding = false;
+        // 나중에 롱노트가 적용되면 여기에 “릴리즈 판정” 추가 가능
     }
 
     public void HideHitMarker()
     {
         if (markerImage != null)
-        {
             markerImage.enabled = false;
-        }
-
     }
-
-
 }
-

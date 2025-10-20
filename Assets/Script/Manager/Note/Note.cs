@@ -6,7 +6,12 @@ using UnityEngine.UI;
 
 public class Note : MonoBehaviour
 {
+    [Header("풀 타입")]
+    public int poolType = 0;
+
+
     public double targetTimeSec;  // 이 노트가 맞아야 할 절대 시각(DSP 기준)
+    private bool isResolved = false; // true가 되면 이 노트는 더 이상 판정/연출을 하지 않음
 
     // Animator 대신 SpriteAnimatorBPM
     [Header("TimingCircle")]
@@ -20,8 +25,6 @@ public class Note : MonoBehaviour
     [SerializeField] private Image judgementImage; // 판정 스프라이트 교체용
     [SerializeField] private Sprite[] judgementSprites;
     // 0: Perfect, 1: Great, 2: Good, 3: Bad, 4: Miss
-
-    private bool isResolved = false; // true가 되면 이 노트는 더 이상 판정/연출을 하지 않음
 
     void Awake()
     {
@@ -46,25 +49,10 @@ public class Note : MonoBehaviour
 
     void OnEnable()
     {
-        // 풀링 재사용될 때마다 초기화 보장
-        if (judgementAnimator == null)
-        {
-            Transform judge = transform.Find("JudgementEffect");
-            if (judge != null) 
-            { 
-                if (judgementAnimator == null) 
-                    judgementAnimator = judge.GetComponent<Animator>(); 
-                
-                if (judgementImage == null) 
-                    judgementImage = judge.GetComponent<Image>(); 
-            }
-        }
-        
-        if (judgementImage != null) 
-            judgementImage.enabled = false;
-
-
         isResolved = false;
+
+        if (judgementImage != null)
+            judgementImage.enabled = false;
     }
 
     void Update()
@@ -78,7 +66,7 @@ public class Note : MonoBehaviour
             double now = AudioSettings.dspTime;
             double lastAllowed = targetTimeSec + (double)TimingManager.instance.missRange;
 
-            // 노트를 놓쳤을 떄 Miss 판정 - 여기서 바로 반납X (애니가 돌 기회가 사라짐)
+            // 노트 놓쳤을 떄 Miss 판정 - 여기서 바로 반납X (애니가 돌 기회가 사라짐)
             if (now > lastAllowed)
             {
                 ShowJudgementEffect(4); // Miss = index 4
@@ -102,12 +90,12 @@ public class Note : MonoBehaviour
         }
     }
 
-    private void SafetyReturn() // ★ 추가: 이벤트 못 받았을 때 대비용
+    private void SafetyReturn() // 이벤트 못 받았을 때 대비용
     {
         if (gameObject.activeInHierarchy)
         {
             Debug.LogWarning("[Note] AnimationEvent 미수신으로 안전 반납 수행", this);
-            NoteManager.instance.ReturnNote(this);
+            ObjectPool.instance.ReturnNote(poolType, gameObject);
         }
     }
 
@@ -188,12 +176,14 @@ public class Note : MonoBehaviour
         }
     }
 
+
+    // Animator의 AnimationEvent에서 호출
     public void NotifyNoteFinished()
     {
         // 판정 애니 끝났다고 Manager에 알림
         //Debug.Log("[Note] NotifyNoteFinished() 수신 → 매니저에 반납", this);
         CancelInvoke(nameof(SafetyReturn));
-        NoteManager.instance.ReturnNote(this);
+        ObjectPool.instance.ReturnNote(poolType, gameObject);
     }
 
 }

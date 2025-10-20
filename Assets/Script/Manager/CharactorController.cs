@@ -72,7 +72,7 @@ public class CharactorController : MonoBehaviour
     public void CanJudge()
     {
         isFalling = false;
-        Debug.Log("[CharactorController] 일어남 애니 종료 → 입력 해제");
+        //Debug.Log("[CharactorController] 일어남 애니 종료 → 입력 해제");
     }
 }
 

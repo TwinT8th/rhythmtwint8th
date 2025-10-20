@@ -20,7 +20,7 @@ public class NoteManager : MonoBehaviour
 
     [Header("스폰")]
     [SerializeField] Transform noteParent = null; // 노트들을 담을 부모 오브젝트
-
+    [SerializeField] RectTransform uiNoteParent = null;     // 롱노트(UI) 부모 
 
     private List<NoteEvent> pattern; //CSV에서 읽은 데이터
     private List<double> spawnTimesSec;     //각 노트의 절대 스폰시각(초)
@@ -170,30 +170,69 @@ public class NoteManager : MonoBehaviour
 */
     private void SpawnNote(NoteEvent e, int index)
     {
-       //풀에서 오브젝트 꺼내오기
-        GameObject note = ObjectPool.instance.noteQueue.Dequeue();
-
-        // 좌표계 결정: 여기서는 부모 기준 localPosition으로 배치
-        note.transform.SetParent(noteParent); //부모 지정
-        note.transform.localPosition = new Vector3(e.x, e.y, 0f);
-        note.transform.localScale = Vector3.one;
-        note.SetActive(true);
-
-        // Note 컴포넌트 초기화
-        Note comp = note.GetComponent<Note>();
-        if (comp != null)
+        // 타입 별 분기
+        if (e.type == 0)
         {
-            //  @ 타겟의 절대 DSP 시각 = 오디오 예약 시작 DSP + 타겟(초) 
-            double targetDSPTime = scheduledStartDSPTime + targetTimesSec[index];
-            comp.Init(targetDSPTime);   // 타겟 “절대” 시각 전달 (Note는 이걸 기준으로 판정)
+            //---------------단타형----------------
+            //풀에서 오브젝트 꺼내오기
+            GameObject note = ObjectPool.instance.GetNote(0);
+
+            // 좌표계 결정: 여기서는 부모 기준 localPosition으로 배치
+            note.transform.SetParent(noteParent); //부모 지정
+            note.transform.localPosition = new Vector3(e.x, e.y, 0f);
+            note.transform.localScale = Vector3.one;
+            note.SetActive(true);
+
+            // Note 컴포넌트 초기화
+            Note comp = note.GetComponent<Note>();
+            if (comp != null)
+            {
+                //  타겟의 절대 DSP 시각 = 오디오 예약 시작 DSP + 타겟(초) 
+                double targetDSPTime = scheduledStartDSPTime + targetTimesSec[index];
+                comp.poolType = 0;
+                comp.Init(targetDSPTime);   // 타겟 “절대” 시각 전달 (Note는 이걸 기준으로 판정)
+            }
         }
 
+        else if (e.type == 1)
+        {
+            //---------롱노트형----------
+            GameObject longNoteObj = ObjectPool.instance.GetNote(1); // ID 1번 롱노트 프리팹
+                                                                     // 부모: uiNoteParent (Canvas 하위)  ★ 아주 중요
+            var parent = (uiNoteParent != null) ? (Transform)uiNoteParent : transform;
+            longNoteObj.transform.SetParent(parent, worldPositionStays: false);
+            longNoteObj.transform.localScale = Vector3.one;
+            longNoteObj.SetActive(true);
+
+
+            LongNote longNote = longNoteObj.GetComponent<LongNote>();
+            if(longNote != null)
+            {
+                Vector2 headPos = new Vector2(e.x, e.y);
+                Vector2 tailPos = new Vector2(e.tailX,e.tailY);
+                longNote.SetPositions(headPos, tailPos);
+            }
+
+            double secPerBeat = 60.0 / bpm;
+            double headDSP = scheduledStartDSPTime + targetTimesSec[index];
+            double tailDSP = scheduledStartDSPTime + (e.tailBeat * secPerBeat);
+            double expectedDuration = tailDSP - headDSP;
+
+            longNote.InitAuto(scheduledStartDSPTime, headDSP, expectedDuration);
+
+    
+        }
+
+        else
+        {
+            Debug.LogWarning($"[NoteManager] 알 수 없는 type {e.type} -> 스폰 건너뜀");
+        }
     }
     public void ReturnNote(Note note)
     {
 
         note.gameObject.SetActive(false);
-        ObjectPool.instance.noteQueue.Enqueue(note.gameObject);
+        ObjectPool.instance.ReturnNote(note.poolType, note.gameObject); //  poolType 사용
 
         // 마지막 노트가 처리되었는지 감지
         if (!isLastNoteProcessed && Mathf.Abs((float)(note.targetTimeSec - (scheduledStartDSPTime + lastNoteTimeSec))) < 0.02f)
@@ -238,6 +277,23 @@ public class NoteManager : MonoBehaviour
     public int GetTotalNoteCount()
     {
         return (pattern != null) ? pattern.Count : 0;
+    }
+
+    //패턴에 기록된 총 롱노트 홀드 틱 수?...
+    public int GetTotalHoldTicks()
+    {
+        int tickCount = 0;
+        foreach (var e in pattern)
+        {
+            if (e.type == 1) // 롱노트
+            {
+                // 대략 0.125초(틱 간격) 기준으로 계산
+                double secPerBeat = 60.0 / bpm;
+                double durationSec = (e.tailBeat - e.beat) * secPerBeat;
+                tickCount += Mathf.CeilToInt((float)(durationSec / 0.125f));
+            }
+        }
+        return tickCount;
     }
 
     public void ResetForReplay()

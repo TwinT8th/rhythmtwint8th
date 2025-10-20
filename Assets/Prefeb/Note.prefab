@@ -511,6 +511,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58a3e8a9fc66aa44d9264ef367becc81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  poolType: 0
   targetTimeSec: 0
   timingCircleAnim: {fileID: 4863541784575178079}
   hitMarkerAnim: {fileID: 6230722741977566541}

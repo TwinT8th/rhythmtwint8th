@@ -16,16 +16,29 @@ public struct NoteEvent
     public float x;       // 스폰 X 좌표 (월드/로컬 어떤 좌표계인지는 스포너에서 정의)
     public float y;       // 스폰 Y 좌표
 
-    public NoteEvent(float beat, float x, float y)
+    //노트 종류 및 롱노트 용 끝 좌표
+
+    public int type; //0 = 단타, 1 = 롱노트
+    public float tailX; //롱노트 끝점 X 
+    public float tailY; //롱노트 끝점 Y
+    public float tailBeat; //꼬리 실이...?
+
+    public NoteEvent(float beat, float x, float y, int type = 0, float tailX = 0, float tailY = 0, float tailBeat=0)
     {
         this.beat = beat;
         this.x = x;
         this.y = y;
+        this.type = type;
+        this.tailX = tailX;
+        this.tailY = tailY;
+        this.tailBeat = tailBeat;
     }
 
     public Vector2 Position => new Vector2(x, y); // 편의용
-}
+    public Vector2 TailPosition => new Vector2(tailX, tailY);
+}    
 
+   
 /// <summary>
 /// Resources의 CSV(TextAsset)를 읽어 List<NoteEvent>로 변환하는 로더.
 /// - CSV 헤더: beat, x, y (대소문자 무시)
@@ -59,11 +72,11 @@ public class CSVLoader : MonoBehaviour
             return new List<NoteEvent>();
         }
 
-        // 기존 TryLoad() 로직 일부 재활용
         using (var reader = new StringReader(patternFile.text))
         {
             pattern.Clear();
 
+            // 1) 헤더 읽기
             string headerLine = reader.ReadLine();
             if (headerLine == null)
             {
@@ -71,24 +84,33 @@ public class CSVLoader : MonoBehaviour
                 return pattern;
             }
 
+            // 2) 구분자 감지
             char sep = DetectSeparator(headerLine);
-            if (!TryParseHeader(headerLine, sep, out int beatIdx, out int xIdx, out int yIdx))
+
+            // 3) 헤더 파싱 (★ 확장된 시그니처 사용)
+            if (!TryParseHeader(headerLine, sep,
+                out int beatIdx, out int xIdx, out int yIdx,
+                out int typeIdx, out int tailXIdx, out int tailYIdx, out int tailBeatIdx))
             {
                 Debug.LogError("[CSVLoader] 헤더에 'beat', 'x', 'y'가 모두 포함되어야 합니다.");
                 return pattern;
             }
 
+            // 4) 본문 파싱
             string line;
-            int lineNumber = 1;
+            int lineNumber = 1; // 헤더 = 1행
+
             while ((line = reader.ReadLine()) != null)
             {
                 lineNumber++;
+
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 if (IsComment(line)) continue;
 
                 string[] cols = line.Split(sep);
                 TrimAll(cols);
 
+                // 필요한 열(beat/x/y) 존재 검사
                 int needed = Mathf.Max(beatIdx, xIdx, yIdx);
                 if (cols.Length <= needed)
                 {
@@ -96,18 +118,52 @@ public class CSVLoader : MonoBehaviour
                     continue;
                 }
 
-                if (!float.TryParse(cols[beatIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out float beat)) continue;
-                if (!float.TryParse(cols[xIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out float x)) continue;
-                if (!float.TryParse(cols[yIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out float y)) continue;
+                // 필수값: beat/x/y
+                if (!float.TryParse(cols[beatIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out float beat))
+                {
+                    Debug.LogWarning($"[CSVLoader] {lineNumber}행: beat 파싱 실패 → '{cols[beatIdx]}'");
+                    continue;
+                }
+                if (!float.TryParse(cols[xIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out float x))
+                {
+                    Debug.LogWarning($"[CSVLoader] {lineNumber}행: x 파싱 실패 → '{cols[xIdx]}'");
+                    continue;
+                }
+                if (!float.TryParse(cols[yIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out float y))
+                {
+                    Debug.LogWarning($"[CSVLoader] {lineNumber}행: y 파싱 실패 → '{cols[yIdx]}'");
+                    continue;
+                }
 
-                pattern.Add(new NoteEvent(beat, x, y));
+                // ★ 옵션값: type / tailX / tailY (줄마다 초기화!)
+                int type = 0;
+                float tailX = 0f, tailY = 0f;
+
+                if (typeIdx >= 0 && cols.Length > typeIdx)
+                    int.TryParse(cols[typeIdx], out type);
+
+                float tailBeat = beat; // 기본값: 없으면 자기 beat
+
+                if (type == 1) // 롱노트일 때만 tail 좌표 읽기
+                {
+                    if (tailXIdx >= 0 && cols.Length > tailXIdx)
+                        float.TryParse(cols[tailXIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out tailX);
+                    if (tailYIdx >= 0 && cols.Length > tailYIdx)
+                        float.TryParse(cols[tailYIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out tailY);
+                    if (tailBeatIdx >= 0 && cols.Length > tailBeatIdx)
+                        float.TryParse(cols[tailBeatIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out tailBeat);
+                }
+
+                // 5) 최종 추가
+                pattern.Add(new NoteEvent(beat, x, y, type, tailX, tailY, tailBeat));
             }
         }
 
+        // 6) 정렬 (스폰 순서 보장)
         pattern.Sort((a, b) => a.beat.CompareTo(b.beat));
-        //Debug.Log($"[CSVLoader] 'pattern{songIndex}.csv' 로드 완료 (총 {pattern.Count}개).");
         return pattern;
     }
+
 
     private void Awake()
     {
@@ -160,7 +216,9 @@ public class CSVLoader : MonoBehaviour
             char sep = DetectSeparator(headerLine);
 
             // 5) 헤더에서 각 열 인덱스 찾기 (대소문자 무시)
-            if (!TryParseHeader(headerLine, sep, out int beatIdx, out int xIdx, out int yIdx))
+            if (!TryParseHeader(headerLine, sep,
+     out int beatIdx, out int xIdx, out int yIdx,
+     out int typeIdx, out int tailXIdx, out int tailYIdx, out int tailBeatIdx))
             {
                 Debug.LogError("[CSVLoader] 헤더에 'beat', 'x', 'y'가 모두 포함되어야 합니다.");
                 return false;
@@ -169,6 +227,8 @@ public class CSVLoader : MonoBehaviour
             // 6) 본문 각 줄 파싱
             string line;
             int lineNumber = 1; // 헤더 = 1행
+
+
             while ((line = reader.ReadLine()) != null)
             {
                 lineNumber++;
@@ -205,7 +265,26 @@ public class CSVLoader : MonoBehaviour
                     continue;
                 }
 
-                pattern.Add(new NoteEvent(beat, x, y));
+
+                //추가: type, tail 좌표 읽기
+                int type = 0;
+                float tailX = 0f, tailY = 0f;
+
+
+                if (typeIdx >= 0 && cols.Length > typeIdx)
+                    int.TryParse(cols[typeIdx], out type);
+
+                if (type == 1) // 롱노트일 때만 tailX, tailY 읽기
+                {
+                    if (tailXIdx >= 0 && cols.Length > tailXIdx)
+                        float.TryParse(cols[tailXIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out tailX);
+                    if (tailYIdx >= 0 && cols.Length > tailYIdx)
+                        float.TryParse(cols[tailYIdx], NumberStyles.Float, CultureInfo.InvariantCulture, out tailY);
+                }
+
+                // 최종 추가
+                pattern.Add(new NoteEvent(beat, x, y, type, tailX, tailY));
+
             }
         }
 
@@ -228,9 +307,10 @@ public class CSVLoader : MonoBehaviour
     }
 
     private static bool TryParseHeader(string headerLine, char sep,
-                                       out int beatIdx, out int xIdx, out int yIdx)
+                                   out int beatIdx, out int xIdx, out int yIdx,
+                                   out int typeIdx, out int tailXIdx, out int tailYIdx, out int tailBeatIdx)
     {
-        beatIdx = xIdx = yIdx = -1;
+        beatIdx = xIdx = yIdx = typeIdx = tailXIdx = tailYIdx = tailBeatIdx = - 1;
 
         string[] heads = headerLine.Split(sep);
         TrimAll(heads);
@@ -241,8 +321,13 @@ public class CSVLoader : MonoBehaviour
             if (h == "beat") beatIdx = i;
             else if (h == "x") xIdx = i;
             else if (h == "y") yIdx = i;
+            else if (h == "type") typeIdx = i;
+            else if (h == "tailx") tailXIdx = i;
+            else if (h == "taily") tailYIdx = i;
+            else if (h == "tailbeat") tailBeatIdx = i;
         }
 
+        // beat/x/y만 필수. 나머지는 없어도 됨(기본값 0 처리)
         return (beatIdx >= 0 && xIdx >= 0 && yIdx >= 0);
     }
 

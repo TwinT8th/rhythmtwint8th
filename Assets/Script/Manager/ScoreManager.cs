@@ -17,7 +17,9 @@ public class ScoreManager : MonoBehaviour
     [Header("Score Settings")]
     [SerializeField] int increaseScore = 10;
     //[SerializeField] int comboBonusScore = 5; 콤보 더 완화시키면서 삭제
-    [SerializeField] float[] weight = null;
+    [SerializeField] int holdTickScore = 50;
+
+  [SerializeField] float[] weight = null;
 
     private int currentScore = 0;
     private int currentCombo = 0;
@@ -63,20 +65,15 @@ public class ScoreManager : MonoBehaviour
         txtScore.text = string.Format("{0:#,##0}", currentScore);
         myAnim.SetTrigger(animScoreUp);
 
-        /*
-        //콤보 보너스 점수 계산
-        int t_currentCombo = GetCurrentCombo();
-        int t_bonusComboScore = (t_currentCombo) * comboBonusScore;
+    }
 
-        int t_increaseScore = increaseScore + t_bonusComboScore;
-        // 점수 가중치
-        
-        t_increaseScore = (int)(t_increaseScore * weight[p_JudgementState]);
-        currentScore += t_increaseScore;
+
+   //롱 노트용
+   public void IncreaseHoldTick()
+    {
+        currentScore += holdTickScore;
         txtScore.text = string.Format("{0:#,##0}", currentScore);
-
-        myAnim.SetTrigger(animScoreUp);
-        */
+        IncreaseCombo(1);
     }
 
     public void IncreaseCombo(int p_num = 1)
@@ -144,7 +141,15 @@ public class ScoreManager : MonoBehaviour
         if (totalNotes <= 0) return 0;
 
         float perfectWeight = (weight != null && weight.Length > 0) ? weight[0] : 1f;
-        return Mathf.RoundToInt(totalNotes * increaseScore * perfectWeight);
+
+        // 기본 단타 점수
+        int baseScore = Mathf.RoundToInt(totalNotes * increaseScore * perfectWeight);
+
+        // 롱노트 틱 점수 추정치 포함 (NoteManager가 전체 롱노트 틱 수 알려줄 수 있다면)
+        int totalHoldTicks = NoteManager.instance.GetTotalHoldTicks(); // ★ 필요시 추가
+        int holdScore = totalHoldTicks * holdTickScore;
+
+        return baseScore + holdScore;
     }
     public void ResetScore()
     {

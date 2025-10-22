@@ -159,7 +159,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -69.399994}
+  m_AnchoredPosition: {x: 0, y: -69.3999}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &52628539
@@ -2120,10 +2120,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5130591727228608057, guid: 51be479f3ec4ff941be3510ad0bf4134, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6358088641136677455, guid: 51be479f3ec4ff941be3510ad0bf4134, type: 3}
-      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -5063,6 +5059,7 @@ MonoBehaviour:
   noteParent: {fileID: 1157810834}
   uiNoteParent: {fileID: 0}
   leadInSec: 2
+  scheduledStartDSPTime: 0
   approachBeats: 2
   lastNoteTimeSec: 0
 --- !u!114 &1157810837
@@ -8674,10 +8671,6 @@ PrefabInstance:
     - target: {fileID: 4758294858675336822, guid: 3b9a3d214587a914cb4f9cc6d397a65e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7210036540420767278, guid: 3b9a3d214587a914cb4f9cc6d397a65e, type: 3}
-      propertyPath: beatsToPlay
-      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

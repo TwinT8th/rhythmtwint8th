@@ -18,7 +18,10 @@ public class GameManager : MonoBehaviour
     StageManager theStage;
     StageVideoController stageVideo;
     Result theResult;
-  //  StageMenu theStageMenu;
+    NoteManager theNote;    // 추가
+    AudioManager theAudio;  // 추가
+
+    //  StageMenu theStageMenu;
 
     // Start is called before the first frame update
     void Awake()
@@ -33,7 +36,26 @@ public class GameManager : MonoBehaviour
         theStage = FindObjectOfType<StageManager>();
         stageVideo = FindObjectOfType<StageVideoController>();
         theResult = FindObjectOfType<Result>();
+        theNote = FindObjectOfType<NoteManager>();
+        theAudio = FindObjectOfType<AudioManager>();
       //  theStageMenu =  FindObjectOfType<StageMenu>();
+    }
+
+
+    void Update()
+    {
+        if (!isStartGame) return;
+        if (theNote == null || theAudio == null) return;
+
+        // 현재 BGM 재생시간
+        double now = AudioSettings.dspTime - theNote.scheduledStartDSPTime;
+        double endTime = theNote.lastNoteTimeSec + 1.5f; // 마지막 노트보다 1.5초 여유
+
+        if (now >= endTime)
+        {
+            Debug.Log("[GameManager] 마지막 노트 시간 도달 → 게임 자동 종료");
+            EndGameWithResult();
+        }
     }
 
     public void StartGame(int p_songNum)
@@ -64,9 +86,6 @@ public class GameManager : MonoBehaviour
 
         isStartGame = true;
         Debug.Log("[GameManager] 게임 시작됨!");
-
-        if (NoteManager.instance != null)
-            NoteManager.instance.ResetForReplay();
 
         // 여기서 NoteManager에게 음악 시작 요청
         if (NoteManager.instance != null)
@@ -104,4 +123,32 @@ public class GameManager : MonoBehaviour
         Debug.Log("[GameManager] 게임 종료 및 인덱스 초기화 완료");
     }
 
+
+    //게임 종료를 감지해서 Result 창 호출 
+    public void EndGameWithResult()
+    {
+        if (!isStartGame) return;
+
+        isStartGame = false;
+
+        Debug.Log("[GameManager] EndGameWithResult() 호출됨");
+
+        StartCoroutine(ShowResultAfterFade());
+    }
+
+    private IEnumerator ShowResultAfterFade()
+    {
+        float fadeDuration = 3f;
+
+        if (theAudio != null)
+            yield return StartCoroutine(theAudio.FadeOutBGM(fadeDuration));
+
+        if (stageVideo != null)
+            stageVideo.PauseVideo();
+
+        yield return new WaitForSeconds(fadeDuration);
+
+        if (theResult != null)
+            theResult.ShowResult();
+    }
 }

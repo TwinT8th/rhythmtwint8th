@@ -146,7 +146,7 @@ public class ScoreManager : MonoBehaviour
         int baseScore = Mathf.RoundToInt(totalNotes * increaseScore * perfectWeight);
 
         // 롱노트 틱 점수 추정치 포함 (NoteManager가 전체 롱노트 틱 수 알려줄 수 있다면)
-        int totalHoldTicks = NoteManager.instance.GetTotalHoldTicks(); // ★ 필요시 추가
+        int totalHoldTicks = NoteManager.instance.GetTotalHoldTicks(); 
         int holdScore = totalHoldTicks * holdTickScore;
 
         return baseScore + holdScore;

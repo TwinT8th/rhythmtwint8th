@@ -8,10 +8,11 @@ public class LongNote : MonoBehaviour
     // (1) 맨 위에 디버그 스위치
     [SerializeField] private bool DEBUG_LOG = true;
 
-    public int poolType = 1; // 1 = 롱노트 풀
+    [Header("풀 타입")]
+    public int poolType = 1;
 
+    [Header("Head / Tail")]
     [SerializeField] private RectTransform head;
-   // [SerializeField] private RectTransform glideIcon; // Head 내부에서 움직일 이미지
     [SerializeField] private RectTransform tail;
     [SerializeField] private Image line;
 
@@ -20,29 +21,28 @@ public class LongNote : MonoBehaviour
     [SerializeField] private SpriteAnimatorBPM tailTimingCircleAnim;  //  Animator → SpriteAnimatorBPM
     [SerializeField] private float shrinkBeats = 2f; // 축소에 걸리는 비트 수 (기존처럼)
                                                      // bpm을 NoteManager나 AudioManager에서 받아온다고 가정 (구현해야 함)
+    [Header("설정")]
     public float bpm = 90f;
 
+
+
+    // 내부 상태
+    private bool isResolved = false;
+    private bool isInitialized = false;
+    private bool hasPlayedTailAnim = false;
+    private bool wasHeld = false;  //유저가 한번이라도 롱노트르 잡았는지
+    [SerializeField] private bool autoGlide = false; // 자동 이동 On/Off
+
+
+    [HideInInspector] public double expectedHoldDuration; //롱 노트의 목표 지속시간. NoteManager가 채워줌
+    private Vector2 headStart, headEnd;
+    private double spawnDSP; // 스폰(DSP 기준 시작)
     private double headTargetDSP;     // 헤드를 눌러야 하는 ‘정확한 비트’의 DSP
     private double tailTargetDSP; // Tail 판정용 절대 시각 추가
     private float t = 0f;         // 진행률 캐싱
     private float glideDuration; // = (tailTargetDSP - spawnDSP)
 
-    // 내부 시간 계산용
-    private bool hasPlayedTailAnim = false;
 
-    private bool wasHeld = false; //유저가 한번이라도 롱노트르 잡았는지
-
-    [HideInInspector] public double expectedHoldDuration; //롱 노트의 목표 지속시간. NoteManager가 채워줌
-    private Vector2 headStart, headEnd;
-    private double spawnDSP; // 스폰(DSP 기준 시작)
-    [SerializeField] private bool autoGlide = false; // 자동 이동 On/Off
-
-
-    //[HideInInspector] public double expectedHoldDuration;
-    /*
-    [Header("HitMarker-Head")]
-    [SerializeField] private SpriteAnimatorBPM hitMarkerAnim;
-    */
 
     [Header("판정 이펙트")]
     [SerializeField] private Animator judgementAnimator;
@@ -50,8 +50,6 @@ public class LongNote : MonoBehaviour
     [SerializeField] private Sprite[] judgementSprites;
     // 0: Perfect, 1: Great, 2: Good, 3: Bad, 4: Miss
 
-
-    private bool isResolved = false;
 
     void Awake()
     {
@@ -65,34 +63,76 @@ public class LongNote : MonoBehaviour
     }
     void OnEnable()
     {
-        isResolved = false;
-        //wasHeld = false; ->init에 넣음
-        if (judgementImage) judgementImage.enabled = false;
-
-        // 서클만 리셋, autoGlide는 건들지 않음 (InitAuto가 결정)
-        if (headTimingCircleAnim) { headTimingCircleAnim.bpm = bpm; headTimingCircleAnim.beatsToPlay = 2f; headTimingCircleAnim.Play(); }
-        if (tailTimingCircleAnim) tailTimingCircleAnim.Stop();
-
-        // head 위치는 SetPositions/InitAuto에서 세팅
+        ResetState();
     }
+       public void ResetState()
+    {
+        isResolved = false;
+        isInitialized = false;
+        hasPlayedTailAnim = false;
+        wasHeld = false;
+        autoGlide = false;
+
+        // 판정 이미지와 애니메이터 완전 초기화
+
+        if (judgementImage)
+        {
+            judgementImage.enabled = false;
+        }
+
+
+
+
+        if (judgementAnimator)
+        {
+            judgementAnimator.enabled = false; // 기본은 꺼둠 (Hit 때만 켜짐)
+            judgementAnimator.gameObject.SetActive(false); // 아예 숨김
+        }
+
+
+        if (headTimingCircleAnim)
+        {
+            headTimingCircleAnim.Stop();
+            headTimingCircleAnim.gameObject.SetActive(true);
+        }
+
+        if (tailTimingCircleAnim)
+        {
+            tailTimingCircleAnim.Stop();
+            tailTimingCircleAnim.gameObject.SetActive(true);
+        }
+
+        if (judgementAnimator)
+        {
+            judgementAnimator.enabled = true;
+            judgementAnimator.gameObject.SetActive(true);
+            judgementAnimator.ResetTrigger("Hit");
+        }
+
+        if (line)
+        {
+            line.color = new Color(1, 1, 1, 1f);
+            var lineRect = line.rectTransform;
+            lineRect.sizeDelta = new Vector2(lineRect.sizeDelta.x, lineRect.sizeDelta.y);
+        }
+    
+}
 
 
     public void InitAuto(double scheduledStartDPSTime, double targetDSPTime, double expectedDuration)
     {
 
-        wasHeld = false;
-        hasPlayedTailAnim = false;
-
-        headTargetDSP = targetDSPTime;
-        expectedHoldDuration = Mathf.Max(0f, (float)expectedDuration);
+        ResetState();
 
         double secPerBeat = 60.0 / bpm;
         double approachSec = NoteManager.instance.approachBeats * secPerBeat;
 
+        headTargetDSP = targetDSPTime;
+        expectedHoldDuration = Mathf.Max(0f, (float)expectedDuration);
         spawnDSP = headTargetDSP - approachSec;
         tailTargetDSP = headTargetDSP + expectedHoldDuration;
 
-        autoGlide = false; // ★ 스폰 시점엔 정지
+        autoGlide = false; // 스폰 시점엔 정지
         head.anchoredPosition = headStart;
 
         if (headTimingCircleAnim) { headTimingCircleAnim.bpm = bpm; headTimingCircleAnim.beatsToPlay = 2f; headTimingCircleAnim.Play(); }
@@ -147,7 +187,10 @@ public class LongNote : MonoBehaviour
 
         // 자동 시작 트리거: 판정 비트부터
         if (!autoGlide && now >= headTargetDSP)
+        {
             autoGlide = true;
+            wasHeld = true; // 자동 모드에서도 눌린 것으로 간주
+        }
 
         if (!autoGlide) return;
 
@@ -238,6 +281,7 @@ public class LongNote : MonoBehaviour
 
         if (judgementAnimator != null)
         {
+
             judgementAnimator.gameObject.SetActive(true);
             judgementAnimator.enabled = true;
             judgementAnimator.ResetTrigger("Hit");
@@ -270,15 +314,15 @@ public class LongNote : MonoBehaviour
             TimingManager.instance?.CharactorAct("Miss");
             ShowJudgementEffect(4); // Miss
         }
-
+       
         // 약간의 지연 후 반납
-        StartCoroutine(DelayedReturn(0.3f));
+        StartCoroutine(DelayedReturn(1f));
     }
 
     private IEnumerator DelayedReturn(float delay)
     {
         yield return new WaitForSeconds(delay);
-        ObjectPool.instance.ReturnNote(poolType, gameObject);
+         NoteManager.instance?.ReturnLongNote(this, tailTargetDSP);
 
         //TimingManager.instance?.EndHoldJudge(this, 0); // 강제 정리 (혹시 안끝난 홀드 제거)
     }
@@ -311,4 +355,23 @@ public class LongNote : MonoBehaviour
         wasHeld = true; // 잡음 기록
     }
 
+    public void NotifyNoteFinished()
+    {
+        if (isResolved) return; // 이미 정리된 노트면 중복 방지
+
+        Debug.Log("[LongNote] NotifyNoteFinished() 수신 → 안전 반납 실행", this);
+
+        CancelInvoke(nameof(SafetyReturn));
+        Invoke(nameof(SafetyReturn), 0.5f); // 애니 끝나고 약간의 지연 후 반납
+    }
+    private void SafetyReturn()
+    {
+        if (isResolved) return;
+        isResolved = true;
+
+        if (gameObject.activeInHierarchy)
+        {
+            NoteManager.instance?.ReturnLongNote(this, tailTargetDSP);
+        }
+    }
 }

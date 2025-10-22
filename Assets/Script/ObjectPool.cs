@@ -15,56 +15,54 @@ public class ObjectPool : MonoBehaviour
 {
     public static ObjectPool instance;
 
-    //공유자원 instance를 통해 어디서든 public 변수, 함수에 접근 가능
     [SerializeField] ObjectInfo[] objectInfo = null;
 
-    //여러 종류의 오브젝트를 개별 큐로 관리
     private Queue<GameObject>[] objectQueues;
-    // Start is called before the first frame update
-    void Awake()
-    {
-        instance = this;
+    private List<GameObject>[] allObjects;   // ★ 각 타입별 전체 객체 목록
 
-    }
+    void Awake() { instance = this; }
+
     void Start()
     {
-        //objectInfo 배열 크기만큼 큐 배열 생성
-       objectQueues = new Queue<GameObject>[objectInfo.Length];
+        objectQueues = new Queue<GameObject>[objectInfo.Length];
+        allObjects = new List<GameObject>[objectInfo.Length];
 
-        for(int i = 0;i < objectInfo.Length; i++) {
-            objectQueues[i] = InsertQueue(objectInfo[i]);
+        for (int i = 0; i < objectInfo.Length; i++)
+        {
+            objectQueues[i] = new Queue<GameObject>();
+            allObjects[i] = new List<GameObject>();
+
+            // 초기 생성
+            var q = InsertQueue(objectInfo[i], i);
+            // q는 이미 objectQueues[i]에 들어감
         }
-
     }
 
-
-    //특정 풀 생성
-private Queue<GameObject> InsertQueue(ObjectInfo info)
+    private Queue<GameObject> InsertQueue(ObjectInfo info, int type)
     {
-        Queue<GameObject> t_queue = new Queue<GameObject>();
+        Queue<GameObject> q = objectQueues[type];
 
         for (int i = 0; i < info.count; i++)
         {
             GameObject clone = Instantiate(info.goPrefab, transform.position, Quaternion.identity);
             clone.SetActive(false);
+            (info.tfPoolParent ?? this.transform).TrySetParent(clone.transform);
 
-            if (info.tfPoolParent != null)
-                clone.transform.SetParent(info.tfPoolParent);
-            else
-                clone.transform.SetParent(this.transform);
+            // 풀 타입을 Note/LongNote에 주입(새로 만든 객체도 안전)
+            var note = clone.GetComponent<Note>();
+            if (note) note.poolType = type;
+            var lnote = clone.GetComponent<LongNote>();
+            if (lnote) lnote.poolType = type;
 
-            t_queue.Enqueue(clone);
+            q.Enqueue(clone);
+            allObjects[type].Add(clone);
         }
-
-        return t_queue;
-
+        return q;
     }
 
-    // NoteManager에서 쓸 함수 1
-    // 단타형에서 쓰는 “noteQueue”는 이제 objectQueues[0]으로 대체 가능
     public GameObject GetNote(int type)
     {
-        if(type < 0 || type >= objectQueues.Length)
+        if (type < 0 || type >= objectQueues.Length)
         {
             Debug.LogError($"[ObjectPool] 잘못된 type 인덱스 요청: {type}");
             return null;
@@ -72,34 +70,32 @@ private Queue<GameObject> InsertQueue(ObjectInfo info)
 
         Queue<GameObject> q = objectQueues[type];
 
-        // 큐를 한 바퀴 돌면서 비활성 오브젝트를 찾아 '꺼내' 사용
-
         int count = q.Count;
         for (int i = 0; i < count; i++)
         {
-            GameObject obj = q.Dequeue(); // 일단 꺼냄
+            GameObject obj = q.Dequeue();
             if (!obj.activeInHierarchy)
             {
-                // 사용 중이므로 큐에 '즉시' 되돌리지 않음 (반납 때 다시 Enqueue)
+                // 사용: 큐에 바로 되돌리지 않음 (반납 시에만 Enqueue)
                 return obj;
             }
-            else
-            {
-                // 사용 중이면 뒤로 회전
-                q.Enqueue(obj);
-            }
+            q.Enqueue(obj);
         }
 
-        // 전부 사용 중이면 새로 생성
-
+        // 전부 사용중이면 ‘안전하게’ 추가 생성
         GameObject newObj = Instantiate(objectInfo[type].goPrefab);
         newObj.SetActive(false);
-        newObj.transform.SetParent(objectInfo[type].tfPoolParent ?? this.transform);
-        return newObj; // 반납 시 Enqueue됨
+        (objectInfo[type].tfPoolParent ?? this.transform).TrySetParent(newObj.transform);
 
+        var note = newObj.GetComponent<Note>();
+        if (note) note.poolType = type;
+        var lnote = newObj.GetComponent<LongNote>();
+        if (lnote) lnote.poolType = type;
+
+        allObjects[type].Add(newObj);
+        return newObj;
     }
-    //NoteManager에서 쓸 함수 2
-    //단타형은 기존처럼 noteQueue.Enqueue() 대신 이렇게 교체 가능
+
     public void ReturnNote(int type, GameObject note)
     {
         if (type < 0 || type >= objectQueues.Length)
@@ -109,12 +105,42 @@ private Queue<GameObject> InsertQueue(ObjectInfo info)
             return;
         }
 
+        //Note 리셋 보장
+
+        var comp = note.GetComponent<Note>();
+        if (comp != null)
+            comp.ResetState();
+
         note.SetActive(false);
-        objectQueues[type].Enqueue(note);//여기서만 큐에 복귀
+        objectQueues[type].Enqueue(note);
     }
 
+    // ★★★ 리플레이/스테이지 종료용: 안전한 전체 리셋
+    public void ResetAllPools()
+    {
+        for (int t = 0; t < objectQueues.Length; t++)
+        {
+            objectQueues[t].Clear();          // 큐부터 비운다
+            foreach (var obj in allObjects[t])
+            {
+                if (obj == null) continue;
+                obj.SetActive(false);         // 전원 비활성
+                objectQueues[t].Enqueue(obj); // 다시 큐에 재등록
+            }
+        }
+        Debug.Log("[ObjectPool] ResetAllPools() 완료");
+    }
 }
 
+// 작은 헬퍼
+static class TransformExt
+{
+    public static void TrySetParent(this Transform parent, Transform child)
+    {
+        if (parent != null && child != null)
+            child.SetParent(parent);
+    }
+}
 
 /*
 Queue<GameObject> InsertQueue(ObjectInfo p_objectInfo)

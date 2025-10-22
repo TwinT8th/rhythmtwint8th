@@ -53,10 +53,10 @@ public class TimingManager : MonoBehaviour
             while (now >= h.nextTickDSP)
             {
                 bool ok = noteInRange(kv.Key); // ← inRange 여부 질의; 구현은 LongNoteHead에서 상태를 노출 or 콜백
-                if (ok)
+                if (ok && kv.Key != null && kv.Key.gameObject.activeInHierarchy)
                 {
                     theScore.IncreaseHoldTick(); // ★ ScoreManager에 틱 점수 함수 하나 추가
-                                                 // (선택) 콤보 +1, 이펙트 스파크 등
+                    theScore.IncreaseCombo(1);  // (선택) 콤보 +1, 이펙트 스파크 등
                 }
                 h.nextTickDSP += h.tickInterval;
             }

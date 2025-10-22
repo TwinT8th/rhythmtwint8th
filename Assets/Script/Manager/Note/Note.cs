@@ -12,12 +12,19 @@ public class Note : MonoBehaviour
 
     public double targetTimeSec;  // 이 노트가 맞아야 할 절대 시각(DSP 기준)
     private bool isResolved = false; // true가 되면 이 노트는 더 이상 판정/연출을 하지 않음
+                                 
+    
+    
+    // ▼ 추가
+    private bool isInitialized = false;
+
 
     // Animator 대신 SpriteAnimatorBPM
     [Header("TimingCircle")]
     [SerializeField] private SpriteAnimatorBPM timingCircleAnim;  //  Animator → SpriteAnimatorBPM
 
     [Header("HitMarker")]
+    [SerializeField] GameObject gohitMarker;
     [SerializeField] private SpriteAnimatorBPM hitMarkerAnim;     
 
     [Header("판정 이펙트")]
@@ -46,13 +53,58 @@ public class Note : MonoBehaviour
         }
 
     }
+    public void ResetState()
+    {
+        targetTimeSec = 0;
+        isResolved = false;
+        isInitialized = false;
+
+        if (timingCircleAnim) { timingCircleAnim.Stop();  }
+        if (hitMarkerAnim) { hitMarkerAnim.Stop();  }
+
+        if (judgementImage) judgementImage.enabled = false;
+        if (judgementAnimator)
+        {
+            judgementAnimator.ResetTrigger("Hit");
+            judgementAnimator.gameObject.SetActive(true);
+            judgementAnimator.enabled = true;
+        }
+    }
 
     void OnEnable()
     {
+
         isResolved = false;
 
+        
+        // 판정 이미지 숨기기
         if (judgementImage != null)
             judgementImage.enabled = false;
+
+        // 타이밍 서클 / 히트마커 초기화
+        if (timingCircleAnim != null)
+        {
+            timingCircleAnim.gameObject.SetActive(true);
+            timingCircleAnim.Stop();   // 혹시 켜져 있던 애니 끄기
+        }
+
+        if (hitMarkerAnim != null)
+        {
+            gohitMarker.SetActive(true);
+            hitMarkerAnim.Stop();
+        }
+
+
+
+        // 판정 이펙트 애니메이터 초기화
+        if (judgementAnimator != null)
+        {
+            judgementAnimator.enabled = true;
+            judgementAnimator.ResetTrigger("Hit");
+            judgementAnimator.gameObject.SetActive(true);
+        }
+        isInitialized = false;
+
     }
 
     void Update()
@@ -61,6 +113,8 @@ public class Note : MonoBehaviour
         if (GameManager.instance.isStartGame)
         {
 
+            // ▼ Init() 호출되기 전 프레임 차단 (핵심)
+            if (!isInitialized) return;
             if (isResolved) return;
 
             double now = AudioSettings.dspTime;
@@ -84,18 +138,25 @@ public class Note : MonoBehaviour
                 //애니메이션이 안전하게 재생될 수 있게 시간 간격 둠
                 CancelInvoke(nameof(SafetyReturn));
                 Invoke(nameof(SafetyReturn), 1.0f);
-
-                //NoteManager.instance.ReturnNote(this);
             }
         }
     }
 
     private void SafetyReturn() // 이벤트 못 받았을 때 대비용
     {
+          if (isResolved) return;
+
+    isResolved = true;  // 중복 방지 플래그
+
+
         if (gameObject.activeInHierarchy)
         {
+            //targetTimeSec = 0;
             Debug.LogWarning("[Note] AnimationEvent 미수신으로 안전 반납 수행", this);
-            ObjectPool.instance.ReturnNote(poolType, gameObject);
+
+            NoteManager.instance?.ReturnNote(this);
+
+            //ObjectPool.instance.ReturnNote(poolType, gameObject);
         }
     }
 
@@ -115,11 +176,11 @@ public class Note : MonoBehaviour
 
         if (judgementImage != null)
         {
-            //Debug.Log($"[Note] Init() judgementImage = {judgementImage.name}", this);
             judgementImage.enabled = false;
         }
 
         isResolved = false;
+        isInitialized = true; // ▼ 이제부터 Update 허용
     }
     public void OnHit()
     {
@@ -140,9 +201,6 @@ public class Note : MonoBehaviour
         if (timingCircleAnim != null) timingCircleAnim.Stop();
         if (hitMarkerAnim != null) hitMarkerAnim.Stop();
 
-        // 눌리면 아예 애니메이션 꺼버림
-        if (hitMarkerAnim != null) hitMarkerAnim.gameObject.SetActive(false);
-        if (timingCircleAnim != null) timingCircleAnim.gameObject.SetActive(false);
 
         isResolved = true;
 
@@ -183,7 +241,12 @@ public class Note : MonoBehaviour
         // 판정 애니 끝났다고 Manager에 알림
         //Debug.Log("[Note] NotifyNoteFinished() 수신 → 매니저에 반납", this);
         CancelInvoke(nameof(SafetyReturn));
-        ObjectPool.instance.ReturnNote(poolType, gameObject);
+
+        // 마지막 노트 감지용으로 NoteManager에 보고
+        if (NoteManager.instance != null)
+            NoteManager.instance.ReturnNote(this);
+
+        //ObjectPool.instance.ReturnNote(poolType, gameObject);
     }
 
 }

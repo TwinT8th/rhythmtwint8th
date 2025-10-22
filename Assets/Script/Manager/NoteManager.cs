@@ -29,13 +29,13 @@ public class NoteManager : MonoBehaviour
 
     [Header("DSP Schedule")]
     [SerializeField] double leadInSec = 1.0d; // 오디오 예약 여유 시간(초)
-    private double scheduledStartDSPTime; // 오디오가 시작될 DSP 시각(절대)
+    public double scheduledStartDSPTime; // 오디오가 시작될 DSP 시각(절대)
 
     [Header("Approach Settings")]
     [SerializeField] public float approachBeats = 2f; // 추가: 타겟보다 몇 박자 먼저 나타날지 (타이밍서클/히트마커 길이와 동일)
 
     public double lastNoteTimeSec = 0; // 마지막 노트의 시간
-    private bool isLastNoteProcessed = false;
+    //private bool isLastNoteProcessed = false;
     int songIndex = 0;
 
 //    StageVideoController stageVideo;
@@ -121,15 +121,7 @@ public class NoteManager : MonoBehaviour
 
     }
 
-    private void LoadPattern(string fileName)
-    {
-        TextAsset patternFile = Resources.Load<TextAsset>(fileName);
-        if (patternFile == null)
-        {
-            Debug.LogError($"[NoteManager] 패턴 파일 '{fileName}.csv'을(를) 찾을 수 없습니다!");
-            return;
-        }
-    }
+
 
 
     private void PrecomputeSpawnTimes() //CSV에서 가져온 beat를 실제 절대시간(초)로 한번에 계산해두는 과정
@@ -214,6 +206,7 @@ public class NoteManager : MonoBehaviour
             }
 
             double secPerBeat = 60.0 / bpm;
+
             double headDSP = scheduledStartDSPTime + targetTimesSec[index];
             double tailDSP = scheduledStartDSPTime + (e.tailBeat * secPerBeat);
             double expectedDuration = tailDSP - headDSP;
@@ -231,46 +224,27 @@ public class NoteManager : MonoBehaviour
     public void ReturnNote(Note note)
     {
 
-        note.gameObject.SetActive(false);
+        //note.gameObject.SetActive(false);
         ObjectPool.instance.ReturnNote(note.poolType, note.gameObject); //  poolType 사용
 
+        /*
         // 마지막 노트가 처리되었는지 감지
-        if (!isLastNoteProcessed && Mathf.Abs((float)(note.targetTimeSec - (scheduledStartDSPTime + lastNoteTimeSec))) < 0.02f)
+        if (!isLastNoteProcessed && Mathf.Abs((float)(note.targetTimeSec - (scheduledStartDSPTime + lastNoteTimeSec))) < 0.08f)
         {
             isLastNoteProcessed = true;
             Debug.Log("[NoteManager] 마지막 노트 판정 완료!");
 
             StartCoroutine(ShowResultAfterFade());
 
-            //StageManager.instance.StartEndSequence(); - 아직 스테이지 매니저 구현 안함
         }
+        */
+
 
     }
-    private IEnumerator ShowResultAfterFade()
+
+    public void ReturnLongNote(LongNote note, double tailDSP)
     {
-        float fadeDuration = 3f;
-
-        // 오디오 페이드 아웃
-        if (AudioManager.instance != null)
-        {
-            yield return StartCoroutine(AudioManager.instance.FadeOutBGM(fadeDuration));
-        }
-        // 비디오 일시정지
-        StageVideoController stageVideo = FindObjectOfType<StageVideoController>();
-        if (stageVideo != null)
-        {
-            stageVideo.PauseVideo();   // 완전히 정지
-                                      // 또는 stageVideo.PauseVideo(); (일시정지만 하고 싶다면)
-        }
-        // 페이드 시간 대기
-        yield return new WaitForSeconds(fadeDuration);
-
-        // 결과창 표시
-        Result resultUI = FindObjectOfType<Result>();
-        if (resultUI != null)
-        {
-            resultUI.ShowResult();
-        }
+        ObjectPool.instance.ReturnNote(note.poolType, note.gameObject);
     }
 
     //패턴에 기록된 총 노트 수
@@ -301,18 +275,37 @@ public class NoteManager : MonoBehaviour
         //Debug.Log("[NoteManager] ResetForReplay() 호출됨 - 상태 초기화 시작");
 
         nextIndex = 0;
-        isLastNoteProcessed = false;
-
+        scheduledStartDSPTime = 0;
         // 패턴 다시 로드 (CSVLoader에서 다시 읽기)
         pattern = csvLoader.GetPattern(songIndex);
         PrecomputeSpawnTimes();
 
-        // 모든 노트 오브젝트 비활성화 (혹시 남아있는 게 있으면)
-        foreach (Transform child in noteParent)
-            child.gameObject.SetActive(false);
+        //오디오 정지
+        if (AudioManager.instance != null)
+            AudioManager.instance.StopBGM();
 
-        // 오디오도 멈춤
-        AudioManager.instance.StopBGM();
+        /*
+        // 일반 노트 부모 오브젝트 초기화
+        if (noteParent != null)
+        {
+            foreach (Transform child in noteParent)
+                child.gameObject.SetActive(false);
+        }
+
+        // 롱노트 부모 오브젝트도 초기화
+        if (uiNoteParent != null)
+        {
+            foreach (Transform child in uiNoteParent)
+                child.gameObject.SetActive(false);
+        }
+        
+        //.ResetAllPools()에 맡기기 위해 주석 
+         */
+
+        ObjectPool.instance?.ResetAllPools();
+
+        //ObjectPool.instance.ResetPool();
+        Debug.Log("[NoteManager] ResetForReplay() - 모든 노트 초기화 완료");
 
     }
 

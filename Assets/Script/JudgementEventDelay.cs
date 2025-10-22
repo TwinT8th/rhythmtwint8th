@@ -5,10 +5,12 @@ using UnityEngine;
 public class JudgementEventDelay : MonoBehaviour
 {
     private Note parentNote;
+    private LongNote parentLongNote;
 
     void Awake()
     {
         parentNote = GetComponentInParent<Note>();
+        parentLongNote = GetComponentInParent<LongNote>();
         //Debug.Log($"[JED] Awake receiver on {name}, parent note = {parentNote}", this);
     }
 
@@ -20,10 +22,16 @@ public class JudgementEventDelay : MonoBehaviour
         {
             parentNote.NotifyNoteFinished();
         }
-
+        else if (parentLongNote != null)
+        {
+            parentLongNote.NotifyNoteFinished(); // LongNote용 새 함수 추가 (아래 참고)
+        }
         else
         {
-            Debug.LogError("[Proxy] Note 부모를 찾을 수 없습니다.", this);
+            // 더 이상 에러 로그로 띄우지 말고 경고로만 출력
+            Debug.LogWarning("[JudgementEventDelay] 부모 Note/LongNote를 찾을 수 없습니다.", this);
         }
     }
+
+
 }

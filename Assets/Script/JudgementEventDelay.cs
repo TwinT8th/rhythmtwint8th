@@ -24,7 +24,7 @@ public class JudgementEventDelay : MonoBehaviour
         }
         else if (parentLongNote != null)
         {
-            parentLongNote.NotifyNoteFinished(); // LongNote용 새 함수 추가 (아래 참고)
+            parentLongNote.FinishLongNote(); // LongNote용 새 함수 추가 (아래 참고)
         }
         else
         {

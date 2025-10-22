@@ -13,7 +13,9 @@ public class LongNote : MonoBehaviour
 
     [Header("Head / Tail")]
     [SerializeField] private RectTransform head;
+    [SerializeField] private RectTransform headGlide; // 실제 이동하는 마커
     [SerializeField] private RectTransform tail;
+    [SerializeField] private RectTransform tailJudge;
     [SerializeField] private Image line;
 
     [Header("TimingCircle")]
@@ -134,13 +136,14 @@ public class LongNote : MonoBehaviour
 
         autoGlide = false; // 스폰 시점엔 정지
         head.anchoredPosition = headStart;
+        headGlide.anchoredPosition = headStart;
 
         if (headTimingCircleAnim) { headTimingCircleAnim.bpm = bpm; headTimingCircleAnim.beatsToPlay = 2f; headTimingCircleAnim.Play(); }
         if (tailTimingCircleAnim) tailTimingCircleAnim.Stop();
 
         isResolved = false;
 
-        Debug.Log($"[LongNote] head={headTargetDSP:F3}, tail={tailTargetDSP:F3}, dur={expectedHoldDuration:F3}, spawn={spawnDSP:F3}");
+        //Debug.Log($"[LongNote] head={headTargetDSP:F3}, tail={tailTargetDSP:F3}, dur={expectedHoldDuration:F3}, spawn={spawnDSP:F3}");
     }
 
     public void StartAutoGlide()
@@ -154,14 +157,16 @@ public class LongNote : MonoBehaviour
     // === [1] Head / Tail 좌표 세팅 ===
     public void SetPositions(Vector2 startPos, Vector2 endPos)
     {
-        if (head == null || tail == null || line == null)
+        if (head == null || headGlide == null || tailJudge == null || tail == null || line == null)
         {
             Debug.LogError("[LongNote] Head/Tail/Line 중 연결되지 않은 오브젝트가 있습니다!", this);
             return;
         }
 
         head.anchoredPosition = startPos;
+        headGlide.anchoredPosition = startPos;
         tail.anchoredPosition = endPos;
+        tailJudge.anchoredPosition = endPos;
 
         //두 점을 잇는 벡터 계산
         Vector2 dir = endPos - startPos;
@@ -214,8 +219,8 @@ public class LongNote : MonoBehaviour
     private void UpdateVisuals(float t)
     {
         // head 경로 따라 이동
-        if (head != null)
-            head.anchoredPosition = Vector2.Lerp(headStart, headEnd, t);
+        if (headGlide != null)
+            headGlide.anchoredPosition = Vector2.Lerp(headStart, headEnd, t);
 
 
         // === [Body 길이 줄어드는 효과] ===
@@ -331,8 +336,8 @@ public class LongNote : MonoBehaviour
     {
         get
         {
-            if (head != null)
-                return head.anchoredPosition;
+            if (headGlide != null)
+                return headGlide.anchoredPosition;
             else
                 return Vector2.zero;
         }
@@ -355,23 +360,4 @@ public class LongNote : MonoBehaviour
         wasHeld = true; // 잡음 기록
     }
 
-    public void NotifyNoteFinished()
-    {
-        if (isResolved) return; // 이미 정리된 노트면 중복 방지
-
-        Debug.Log("[LongNote] NotifyNoteFinished() 수신 → 안전 반납 실행", this);
-
-        CancelInvoke(nameof(SafetyReturn));
-        Invoke(nameof(SafetyReturn), 0.5f); // 애니 끝나고 약간의 지연 후 반납
-    }
-    private void SafetyReturn()
-    {
-        if (isResolved) return;
-        isResolved = true;
-
-        if (gameObject.activeInHierarchy)
-        {
-            NoteManager.instance?.ReturnLongNote(this, tailTargetDSP);
-        }
-    }
 }

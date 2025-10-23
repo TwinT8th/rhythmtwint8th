@@ -173,7 +173,11 @@ public class NoteManager : MonoBehaviour
             note.transform.SetParent(noteParent); //부모 지정
             note.transform.localPosition = new Vector3(e.x, e.y, 0f);
             note.transform.localScale = Vector3.one;
+
+            //먼저 스폰된 노트가 위로 오도록 설정
+            note.transform.SetAsFirstSibling(); 
             note.SetActive(true);
+   
 
             // Note 컴포넌트 초기화
             Note comp = note.GetComponent<Note>();
@@ -194,6 +198,8 @@ public class NoteManager : MonoBehaviour
             var parent = (uiNoteParent != null) ? (Transform)uiNoteParent : transform;
             longNoteObj.transform.SetParent(parent, worldPositionStays: false);
             longNoteObj.transform.localScale = Vector3.one;
+
+            longNoteObj.transform.SetAsFirstSibling();
             longNoteObj.SetActive(true);
 
 

@@ -17,6 +17,7 @@ public class LongNote : MonoBehaviour
     [SerializeField] private RectTransform tail;
     [SerializeField] private RectTransform tailJudge;
     [SerializeField] private Image line;
+    [SerializeField] private Image body;
 
     [Header("TimingCircle")]
     [SerializeField] private SpriteAnimatorBPM headTimingCircleAnim;
@@ -26,6 +27,8 @@ public class LongNote : MonoBehaviour
     [Header("설정")]
     public float bpm = 90f;
 
+    //리버스 노트 용
+    private bool isReverse = false;
 
 
     // 내부 상태
@@ -74,7 +77,7 @@ public class LongNote : MonoBehaviour
         hasPlayedTailAnim = false;
         wasHeld = false;
         autoGlide = false;
-
+        isReverse = false;
         // 판정 이미지와 애니메이터 완전 초기화
 
         if (judgementImage)
@@ -113,12 +116,17 @@ public class LongNote : MonoBehaviour
 
         if (line)
         {
-            line.color = new Color(1, 1, 1, 1f);
+            //line.color = new Color(1, 1, 1, 1f);
             var lineRect = line.rectTransform;
             lineRect.sizeDelta = new Vector2(lineRect.sizeDelta.x, lineRect.sizeDelta.y);
         }
-    
-}
+
+        if (body)
+        {
+            body.gameObject.SetActive(true);
+        }
+
+    }
 
 
     public void InitAuto(double scheduledStartDPSTime, double targetDSPTime, double expectedDuration)
@@ -178,7 +186,16 @@ public class LongNote : MonoBehaviour
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         lineRect.localRotation = Quaternion.Euler(0, 0, angle);
         lineRect.sizeDelta = new Vector2(distance, lineRect.sizeDelta.y);
-
+        
+        //  body 초기 세팅 ===
+        if (body != null)
+        {
+            RectTransform bodyRect = body.rectTransform;
+            bodyRect.anchoredPosition = lineRect.anchoredPosition;
+            bodyRect.localRotation = lineRect.localRotation;
+            bodyRect.sizeDelta = lineRect.sizeDelta;
+        }
+        
         // 내부 기록
         headStart = startPos;
         headEnd = endPos;
@@ -210,6 +227,18 @@ public class LongNote : MonoBehaviour
         {
             hasPlayedTailAnim = true;
             if (tailTimingCircleAnim) { tailTimingCircleAnim.bpm = bpm; tailTimingCircleAnim.beatsToPlay = shrinkBeats; tailTimingCircleAnim.Play(); }
+        }
+
+
+
+        //@ 추가. 여기 리버스로 전환되는 조건(isReverse = true;)이 있어야 함. csv에서 읽어와야됨 
+        if (isReverse && now >= tailTargetDSP)
+        {
+            isReverse = true;
+            //방향 반전
+            (headStart, headEnd) = (headEnd, headStart);
+            headTargetDSP = now;
+            tailTargetDSP = now + expectedHoldDuration;
         }
 
         // 절대 tail 시점 약간 여유 후 종료
@@ -265,7 +294,7 @@ public class LongNote : MonoBehaviour
     public void ShowHoldEffect(bool isActive)
     {
         // 라인 색 변화, Glow 효과 등 (원하면 여기서 추가)
-        line.color = isActive ? Color.white : new Color(1, 1, 1, 0.5f);
+        //line.color = isActive ? Color.white : new Color(1, 1, 1, 0.5f);
     }
     /*
     public void UpdateHoldLine(Vector2 pointerPos)
@@ -321,7 +350,7 @@ public class LongNote : MonoBehaviour
         }
        
         // 약간의 지연 후 반납
-        StartCoroutine(DelayedReturn(1f));
+        StartCoroutine(DelayedReturn(0.5f));
     }
 
     private IEnumerator DelayedReturn(float delay)

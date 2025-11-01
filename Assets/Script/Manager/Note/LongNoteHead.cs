@@ -24,6 +24,30 @@ public class LongNoteHead : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
         }
     }
 
+    private void Update()
+    {
+        if (!isHolding || parentNote == null) return;
+
+        double now = AudioSettings.dspTime;
+        double tailTime = parentNote.TailTargetDSP;
+
+        // tail 도달 + 0.3초 지나도 판정 안됐으면 강제 Miss
+        if (now >= tailTime + 0.3 && !parentNote.IsJudged)
+        {
+            Debug.Log("[LongNoteHead] Tail timeout → forced Miss");
+
+            // Miss 판정만 넘기고, isJudged는 TimingManager가 처리하게 둔다
+            TimingManager.instance?.EndHoldJudge(parentNote, now - parentNote.HeadTargetDSP);
+
+            // parentNote.NotifyHoldEnded();  ← 삭제!!
+            parentNote.ShowHoldEffect(false);
+            parentNote.ReportFingerInRange(false);
+
+            // FinishLongNote()도 호출하지 않는다 (LongNote에서 처리)
+            isHolding = false;
+        }
+    }
+
     public void OnPointerDown(PointerEventData e)
     {
 
@@ -61,6 +85,8 @@ public class LongNoteHead : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
 
         parentNote.ReportFingerInRange(inRange);
 
+
+
         if (inRange)
         {
             outOfRangeSince = -1;
@@ -77,8 +103,7 @@ public class LongNoteHead : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
                 TimingManager.instance?.BreakHold(parentNote);
                 isHolding = false;
                 parentNote.ShowHoldEffect(false);
-                // (설계에 따라) 여기서 바로 FinishLongNote() 하거나, Bad/Miss로 종료
-                parentNote.FinishLongNote();
+                parentNote.NotifyHoldBroken();  //  추가된 메서드 호출
             }
         }
 
@@ -102,11 +127,13 @@ public class LongNoteHead : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
         if (TimingManager.instance != null)
             TimingManager.instance.EndHoldJudge(parentNote, holdDuration);
 
+        // 판정이 이미 내려졌음을 표시
+        parentNote.NotifyHoldEnded();
+
+
         // 시각 효과 종료
         parentNote.ShowHoldEffect(false);
-
-        // 롱노트 반납
-        parentNote.FinishLongNote();
         parentNote.ReportFingerInRange(false);
+
     }
 }

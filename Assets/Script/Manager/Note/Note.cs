@@ -136,8 +136,12 @@ public class Note : MonoBehaviour
                 isResolved = true;
 
                 //애니메이션이 안전하게 재생될 수 있게 시간 간격 둠
-                CancelInvoke(nameof(SafetyReturn));
-                Invoke(nameof(SafetyReturn), 1.0f);
+                //CancelInvoke(nameof(SafetyReturn));
+                //Invoke(nameof(SafetyReturn), 1.0f);
+
+
+                StartCoroutine(DelayedReturn(1.0f));
+
             }
         }
     }
@@ -205,10 +209,10 @@ public class Note : MonoBehaviour
         isResolved = true;
 
         //안전장치: 이벤트가 안 들어오면 1초 뒤 강제 반납
-        CancelInvoke(nameof(SafetyReturn)); 
-        Invoke(nameof(SafetyReturn), 1.0f);
+        //CancelInvoke(nameof(SafetyReturn)); 
+        //Invoke(nameof(SafetyReturn), 1.0f);
 
-
+        StartCoroutine(DelayedReturn(1.0f));
     }
 
     public  void ShowJudgementEffect(int index)
@@ -249,4 +253,12 @@ public class Note : MonoBehaviour
         //ObjectPool.instance.ReturnNote(poolType, gameObject);
     }
 
+    //기존 AnimationEvent 대체: 일정 시간 후 반납
+    private IEnumerator DelayedReturn(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (NoteManager.instance != null)
+            NoteManager.instance.ReturnNote(this);
+    }
 }

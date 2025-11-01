@@ -16,6 +16,7 @@ public class TitleMenu : MonoBehaviour
     }
     public void BtnPlay()
     {
+        //LoadingManager.instance.FadeQuick();
         goStartUI.SetActive(true);
         this.gameObject.SetActive(false);
     }

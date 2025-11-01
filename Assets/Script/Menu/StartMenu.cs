@@ -31,6 +31,7 @@ public class StartMenu : MonoBehaviour
     public void BtnSelectEP()
     {
         VideoManager.instance.PauseEarth();
+        //LoadingManager.instance.FadeQuick();
         goStageUI.SetActive(true);
         this.gameObject.SetActive(false);
     }

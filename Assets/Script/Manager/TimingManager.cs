@@ -164,42 +164,33 @@ public class TimingManager : MonoBehaviour
     {
         if (note == null) return;
 
-        double now = AudioSettings.dspTime;
-        double startTime;
+        if (note.expectedHoldDuration <= 0.05f)
+            note.expectedHoldDuration = 0.5f; // 최소 방어
 
-        if (!holdStartTimes.TryGetValue(note, out startTime))
-        {
-            Debug.LogWarning("[TimingManager] StartHoldJudge() 기록 없음 → Miss 처리");
-            theScore.IncreaseScore(4); // Miss
-            judgementRecord[4]++;
-            return;
-        }
+        double expected = note.expectedHoldDuration;
+        double diff = holdDuration - expected; // 양수면 늦게, 음수면 일찍
 
-        // 지속시간 기준 판정
-        // 예시: 1초 이상이면 Perfect, 0.7~1.0은 Great, 0.4~0.7은 Good, 0.2~0.4은 Bad, 그 이하는 Miss
-        float duration = (float)holdDuration;
-        int index = 4; // Miss 기본
 
-        if (duration >= 1.0f) index = 0;
-        else if (duration >= 0.7f) index = 1;
-        else if (duration >= 0.4f) index = 2;
-        else if (duration >= 0.2f) index = 3;
-        else index = 4;
+        int index; // 0:Perfect, 1:Great, 2:Good, 3:Bad, 4:Miss
+
+        //  완전 타이밍 기반으로 판정
+        if (Mathf.Abs((float)diff) <= 0.05f) index = 0; // ±0.05초 → Perfect
+        else if (Mathf.Abs((float)diff) <= 0.12f) index = 1; // ±0.12초 → Great
+        else if (Mathf.Abs((float)diff) <= 0.25f) index = 2; // ±0.25초 → Good
+        else if (diff < 0 && Mathf.Abs((float)diff) <= 0.4f) index = 3; // 너무 빨리 뗀 Bad
+        else index = 4; // 너무 늦게(또는 아예 안 떼면) Miss
 
         string[] resultNames = { "Perfect", "Great", "Good", "Bad", "Miss" };
         string result = resultNames[index];
 
-        Debug.Log($"[TimingManager] EndHoldJudge() {note.name} result={result}, duration={duration:F2}s");
+        Debug.Log($"[TimingManager] EndHoldJudge({note.name}) result={result} (diff={diff:F3}s)");
 
         theScore.IncreaseScore(index);
         judgementRecord[index]++;
         CharactorAct(result);
 
-        note.ShowJudgementEffect(index);//Tail에서 판정 표시
-        holds.Remove(note);
-        holdStartTimes.Remove(note);
+        note.OnHoldJudgeEnd(index);
     }
-
     public void BreakHold(LongNote note)
     {
         holds.Remove(note);
@@ -211,6 +202,24 @@ public class TimingManager : MonoBehaviour
     private bool noteInRange(LongNote note)
     {
         return note != null && note.IsFingerInRange; // LongNote에 bool 노출 or Head로부터 받은 상태 캐시
+    }
+
+    public void ForceTimeoutMiss(LongNote note)
+    {
+        if (note == null) return;
+
+        // 이미 판정 끝났으면 무시
+        // (LongNote.OnHoldJudgeEnd에도 가드가 있으니 중복 방지 이중화)
+        theScore.IncreaseScore(4);           // Miss 점수
+        judgementRecord[4]++;                // 통계
+        CharactorAct("Miss");                // 캐릭터 연출
+
+        // LongNote가 연출 + 반납을 수행
+        note.OnHoldJudgeEnd(4);
+
+        // 진행 중인 홀드 트래킹 정리(있다면)
+        holds.Remove(note);
+        holdStartTimes.Remove(note);
     }
 
 }

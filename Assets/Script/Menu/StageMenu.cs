@@ -104,7 +104,7 @@ public class StageMenu : MonoBehaviour
     public void BtnTitle()
     {
 
-
+        LoadingManager.instance.FadeQuick();
         AudioManager.instance.StopBGM(); // ÇÁ¸®ºä Áß´Ü
 
         if (spinningDisk != null)

@@ -32,7 +32,8 @@ public class LongNote : MonoBehaviour
 
 
     // 내부 상태
-    private bool isResolved = false;
+    private bool isResolved = false; // true가 되면 이 노트는 더 이상 판정/연출을 하지 않음
+    private bool isJudged = false; //이미 판정이 내려졌는가? 
     private bool isInitialized = false;
     private bool hasPlayedTailAnim = false;
     private bool wasHeld = false;  //유저가 한번이라도 롱노트르 잡았는지
@@ -47,7 +48,10 @@ public class LongNote : MonoBehaviour
     private float t = 0f;         // 진행률 캐싱
     private float glideDuration; // = (tailTargetDSP - spawnDSP)
 
-
+    public double TailTargetDSP => tailTargetDSP;
+   // public double TailReachDSP => tailReachDSP;
+    public bool IsJudged => isJudged;
+    public double HeadTargetDSP => headTargetDSP;
 
     [Header("판정 이펙트")]
     [SerializeField] private Animator judgementAnimator;
@@ -211,39 +215,48 @@ public class LongNote : MonoBehaviour
         if (!autoGlide && now >= headTargetDSP)
         {
             autoGlide = true;
-            wasHeld = true; // 자동 모드에서도 눌린 것으로 간주
+         
         }
 
-        if (!autoGlide) return;
+        if (autoGlide)
+        {
+            // 진행률: headTarget → tailTarget
+            float t = Mathf.Clamp01((float)((now - headTargetDSP) / expectedHoldDuration));
+            UpdateVisuals(t);
+        }
 
-        // 진행률: headTarget → tailTarget
-        float t = Mathf.Clamp01((float)((now - headTargetDSP) / expectedHoldDuration));
-
-        UpdateVisuals(t);
-
-        // Tail 서클: 절대시간으로
+        // --- [Tail 타이밍서클: bpm 기준 2박자 전부터 시작] ---
         double tailShrinkStartDSP = tailTargetDSP - (shrinkBeats * (60.0 / bpm));
         if (!hasPlayedTailAnim && now >= tailShrinkStartDSP)
         {
             hasPlayedTailAnim = true;
-            if (tailTimingCircleAnim) { tailTimingCircleAnim.bpm = bpm; tailTimingCircleAnim.beatsToPlay = shrinkBeats; tailTimingCircleAnim.Play(); }
+            if (tailTimingCircleAnim)
+            {
+                tailTimingCircleAnim.bpm = bpm;
+                tailTimingCircleAnim.beatsToPlay = shrinkBeats;
+                tailTimingCircleAnim.Play();
+            }
         }
 
-
-
-        //@ 추가. 여기 리버스로 전환되는 조건(isReverse = true;)이 있어야 함. csv에서 읽어와야됨 
+        // @ --- [리버스 전환 조건: 추후 CSV 기반 구현] ---
         if (isReverse && now >= tailTargetDSP)
         {
             isReverse = true;
-            //방향 반전
             (headStart, headEnd) = (headEnd, headStart);
             headTargetDSP = now;
             tailTargetDSP = now + expectedHoldDuration;
         }
 
-        // 절대 tail 시점 약간 여유 후 종료
-        if (now >= tailTargetDSP + 0.08f)
-            FinishLongNote();
+        if (!isJudged && AudioSettings.dspTime >= tailTargetDSP + 0.3f)
+        {
+            // 손을 떼든 말든 무조건 Miss
+            TimingManager.instance?.ForceTimeoutMiss(this);
+            // 여기서 FinishLongNote() 직접 부르지 말 것!
+            // Miss는 OnHoldJudgeEnd(4) → FinishLongNote() 흐름으로 완료됨.
+            return;
+        }
+
+  
     }
     private void UpdateVisuals(float t)
     {
@@ -325,6 +338,12 @@ public class LongNote : MonoBehaviour
         {
             Debug.LogError("[LongNote] judgementAnimator is NULL!", this);
         }
+
+        if (index == 0 || index == 1)
+        {
+            StartCoroutine(HeadGlidePulse(0.15f)); // 0.15초 동안 커졌다가 복귀
+        }
+
     }
 
     // === [4] 롱노트 완전히 끝났을 때 호출 ===
@@ -342,15 +361,19 @@ public class LongNote : MonoBehaviour
             tailTimingCircleAnim.Stop();
         */
 
-        if (!wasHeld)
+        if (!isJudged)
         {
-            TimingManager.instance?.MissRecord();
-            TimingManager.instance?.CharactorAct("Miss");
-            ShowJudgementEffect(4); // Miss
+            if (isBrokenHold || !wasHeld)
+            {
+                TimingManager.instance?.MissRecord();
+                TimingManager.instance?.CharactorAct("Miss");
+                ShowJudgementEffect(4); // Miss
+                Debug.Log($"[LongNote] Miss shown at {AudioSettings.dspTime:F3}s ");
+            }
+
         }
-       
         // 약간의 지연 후 반납
-        StartCoroutine(DelayedReturn(0.5f));
+        StartCoroutine(DelayedReturn(0.8f));
     }
 
     private IEnumerator DelayedReturn(float delay)
@@ -388,5 +411,81 @@ public class LongNote : MonoBehaviour
     {
         wasHeld = true; // 잡음 기록
     }
+
+    private bool isBrokenHold = false;  // 추가
+
+    public void NotifyHoldBroken()
+    {
+        isBrokenHold = true;  // 드래그 중 손을 놓았다고 표시
+    }
+
+    public void NotifyHoldEnded()
+    {
+        isJudged = true; //판정이 이미 내려졌음을 표시(드래그 중 손 떼었을 때 판정 중복 안되게)
+    }
+
+    //모든 시각/반납 관리의 중심
+    public void OnHoldJudgeEnd(int result)
+    {
+        if (isResolved) return;
+
+        isJudged = true;
+
+        // 판정 효과
+        ShowJudgementEffect(result);
+
+        if (result == 4)
+        {
+            // Miss는 즉시 처리
+            FinishLongNote();
+        }
+        else
+        {
+            // Perfect~Bad는 tail까지 진행 후 반납
+            StartCoroutine(FinishAtTail());
+        }
+    }
+
+    private IEnumerator FinishAtTail()
+    {
+        double now = AudioSettings.dspTime;
+        float remain = Mathf.Max(0f, (float)(tailTargetDSP - now));
+
+        // tailTargetDSP가 이미 지났다면 0.2초만 기다렸다 반납
+        if (remain < 0.2f)
+            remain = 0.2f;
+
+        yield return new WaitForSeconds(remain);
+
+        // tail 도달 후 최종 반납
+        FinishLongNote();
+    }
+    private IEnumerator HeadGlidePulse(float duration = 0.15f)
+    {
+        if (headGlide == null) yield break;
+
+        float timer = 0f;
+        Vector3 startScale = headGlide.localScale;
+        Vector3 targetScale = startScale * 1.25f;
+
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+            float t = timer / duration;
+            float eased = t * t * (3 - 2 * t); // ease-in-out 보간
+
+            // 처음 절반은 커지고, 후반 절반은 원래 크기로 복귀
+            float scale = (t < 0.5f)
+                ? Mathf.Lerp(1f, 1.25f, eased * 2f)
+                : Mathf.Lerp(1.25f, 1f, (eased - 0.5f) * 2f);
+
+            headGlide.localScale = startScale * scale;
+
+            yield return null;
+        }
+
+        headGlide.localScale = startScale;
+    }
+
 
 }

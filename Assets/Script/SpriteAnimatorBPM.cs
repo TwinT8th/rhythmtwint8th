@@ -63,7 +63,7 @@ public class SpriteAnimatorBPM : MonoBehaviour
     }
 
     /// <summary>
-    /// 강제로 멈추기 (노트가 눌리거나 Miss 처리될 때 호출)
+    /// 즉시 멈추기 (기존 Stop)  이미지를 바로 숨김
     /// </summary>
     public void Stop()
     {
@@ -74,7 +74,21 @@ public class SpriteAnimatorBPM : MonoBehaviour
         if (targetImage != null) targetImage.enabled = false;
         if (targetRenderer != null) targetRenderer.enabled = false;
     }
+    /// <summary>
+    /// 마지막 프레임에서 정지 (이미지는 그대로 유지)
+    /// </summary>
+    public void StopOnLastFrame()
+    {
+        if (frames.Length == 0) return;
 
+        isPlaying = false;
+        currentFrame = frames.Length - 1;
+        timer = 0f;
+
+        ApplyFrame(); // 마지막 프레임 적용
+        if (targetImage != null) targetImage.enabled = true;
+        if (targetRenderer != null) targetRenderer.enabled = true;
+    }
     private void ApplyFrame()
     {
         if (currentFrame < 0 || currentFrame >= frames.Length) return;

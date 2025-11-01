@@ -25,9 +25,10 @@ public class Note : MonoBehaviour
 
     [Header("HitMarker")]
     [SerializeField] GameObject gohitMarker;
-    [SerializeField] private SpriteAnimatorBPM hitMarkerAnim;     
+    [SerializeField] private SpriteAnimatorBPM hitMarkerAnim;
+    [SerializeField] private Image hitMarkerImg;
 
-    [Header("판정 이펙트")]
+[Header("판정 이펙트")]
     [SerializeField] private Animator judgementAnimator;
     [SerializeField] private Image judgementImage; // 판정 스프라이트 교체용
     [SerializeField] private Sprite[] judgementSprites;
@@ -59,6 +60,12 @@ public class Note : MonoBehaviour
         isResolved = false;
         isInitialized = false;
 
+        if (gohitMarker != null)
+        {
+            if (hitMarkerImg != null)
+                hitMarkerImg.enabled = true;
+        }
+
         if (timingCircleAnim) { timingCircleAnim.Stop();  }
         if (hitMarkerAnim) { hitMarkerAnim.Stop();  }
 
@@ -76,34 +83,8 @@ public class Note : MonoBehaviour
 
         isResolved = false;
 
-        
-        // 판정 이미지 숨기기
-        if (judgementImage != null)
-            judgementImage.enabled = false;
 
-        // 타이밍 서클 / 히트마커 초기화
-        if (timingCircleAnim != null)
-        {
-            timingCircleAnim.gameObject.SetActive(true);
-            timingCircleAnim.Stop();   // 혹시 켜져 있던 애니 끄기
-        }
-
-        if (hitMarkerAnim != null)
-        {
-            gohitMarker.SetActive(true);
-            hitMarkerAnim.Stop();
-        }
-
-
-
-        // 판정 이펙트 애니메이터 초기화
-        if (judgementAnimator != null)
-        {
-            judgementAnimator.enabled = true;
-            judgementAnimator.ResetTrigger("Hit");
-            judgementAnimator.gameObject.SetActive(true);
-        }
-        isInitialized = false;
+        ResetState();
 
     }
 
@@ -131,7 +112,7 @@ public class Note : MonoBehaviour
 
                 // Animator -> SpriteAnimatorBPM 방식으로 Stop 교체
                 if (timingCircleAnim != null) timingCircleAnim.Stop();
-                if (hitMarkerAnim != null) hitMarkerAnim.Stop();
+                if (hitMarkerAnim != null) hitMarkerAnim.StopOnLastFrame();
 
                 isResolved = true;
 
@@ -203,7 +184,7 @@ public class Note : MonoBehaviour
 
         // Animator 대신 SpriteAnimatorBPM → Stop()
         if (timingCircleAnim != null) timingCircleAnim.Stop();
-        if (hitMarkerAnim != null) hitMarkerAnim.Stop();
+        if (hitMarkerAnim != null) hitMarkerAnim.StopOnLastFrame();
 
 
         isResolved = true;
@@ -236,6 +217,16 @@ public class Note : MonoBehaviour
         {
             Debug.LogError("[Note] judgementAnimator is NULL!", this);
         }
+
+        if (index <= 2)
+        {
+            StartCoroutine(NotePulse(0.25f));
+        }
+        else
+        {
+            StartCoroutine(ShakeEffect(0.2f, 8f, 3f));
+        }
+
     }
 
 
@@ -250,7 +241,7 @@ public class Note : MonoBehaviour
         if (NoteManager.instance != null)
             NoteManager.instance.ReturnNote(this);
 
-        //ObjectPool.instance.ReturnNote(poolType, gameObject);
+
     }
 
     //기존 AnimationEvent 대체: 일정 시간 후 반납
@@ -261,4 +252,69 @@ public class Note : MonoBehaviour
         if (NoteManager.instance != null)
             NoteManager.instance.ReturnNote(this);
     }
+
+    private IEnumerator NotePulse(float duration = 0.2f)
+    {
+        // hitMarker 기준으로 연출 — 필요에 따라 timingCircleAnim.gameObject 로 바꿔도 됨
+        if (gohitMarker == null) yield break;
+
+        Transform target = gohitMarker.transform;
+        float timer = 0f;
+        Vector3 startScale = target.localScale;
+        Vector3 targetScale = startScale * 1.25f;
+
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+            float t = timer / duration;
+            float eased = t * t * (3 - 2 * t); // ease-in-out
+
+            // 처음 절반은 커지고, 후반 절반은 복귀
+            float scale = (t < 0.5f)
+                ? Mathf.Lerp(1f, 1.25f, eased * 2f)
+                : Mathf.Lerp(1.25f, 1f, (eased - 0.5f) * 2f);
+
+            target.localScale = startScale * scale;
+            yield return null;
+        }
+
+        target.localScale = startScale;
+
+        if (hitMarkerImg != null)
+            hitMarkerImg.enabled = false;
+    }
+
+    private IEnumerator ShakeEffect(float duration, float shakeMagnitude, float shakeFrequency)
+    {
+        if (gohitMarker == null) yield break;
+
+        Transform target = gohitMarker.transform;
+        Vector3 originalPos = target.localPosition;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = elapsed / duration;
+
+            // 감쇠 (처음엔 세게, 점점 줄어듦)
+            float intensity = (1f - progress);
+
+            // 프레임마다 랜덤 진동
+            float offsetX = Mathf.Sin(Time.time * shakeFrequency * 20f) * shakeMagnitude * intensity;
+            float offsetY = Mathf.Cos(Time.time * shakeFrequency * 15f) * shakeMagnitude * intensity;
+
+            target.localPosition = originalPos + new Vector3(offsetX, offsetY, 0f);
+
+            yield return null;
+        }
+
+        target.localPosition = originalPos;
+
+        if (hitMarkerImg != null)
+            hitMarkerImg.enabled = false;
+    }
+
+
+
 }

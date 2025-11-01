@@ -27,9 +27,6 @@ public class HitMarker : MonoBehaviour, IPointerDownHandler
         {
             parentNote.OnHit(); // Note에 판정 전달
         }
-
-        // 클릭한 순간 HitMarker 비활성화 (단타형은 즉시 사라짐)
-        gameObject.SetActive(false);
     }
 
     // 외부에서 강제로 숨길 때 (Miss 등)

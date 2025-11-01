@@ -341,6 +341,7 @@ MonoBehaviour:
   timingCircleAnim: {fileID: 4863541784575178079}
   gohitMarker: {fileID: 6706665462218634297}
   hitMarkerAnim: {fileID: 3857683296565384273}
+  hitMarkerImg: {fileID: 2120389382104580733}
   judgementAnimator: {fileID: 5096830975794594340}
   judgementImage: {fileID: 6358088641136677455}
   judgementSprites:

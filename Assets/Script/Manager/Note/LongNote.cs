@@ -339,9 +339,13 @@ public class LongNote : MonoBehaviour
             Debug.LogError("[LongNote] judgementAnimator is NULL!", this);
         }
 
-        if (index == 0 || index == 1)
+        if (index <= 2)
         {
             StartCoroutine(HeadGlidePulse(0.15f)); // 0.15초 동안 커졌다가 복귀
+        }
+        else
+        {
+            StartCoroutine(ShakeEffect(0.2f, 8f, 3f));
         }
 
     }
@@ -428,24 +432,28 @@ public class LongNote : MonoBehaviour
     public void OnHoldJudgeEnd(int result)
     {
         if (isResolved) return;
-
         isJudged = true;
 
-        // 판정 효과
-        ShowJudgementEffect(result);
-
-        if (result == 4)
-        {
-            // Miss는 즉시 처리
-            FinishLongNote();
-        }
-        else
-        {
-            // Perfect~Bad는 tail까지 진행 후 반납
-            StartCoroutine(FinishAtTail());
-        }
+        // headGlide가 tail 도달할 때까지 기다렸다가 연출 실행
+        StartCoroutine(WaitForTailThenJudge(result));
     }
 
+    private IEnumerator WaitForTailThenJudge(int result)
+    {
+        // 현재 DSP 시간과 tail 도달 시간 차이 계산
+        double now = AudioSettings.dspTime;
+        float remain = Mathf.Max(0f, (float)(tailTargetDSP - now));
+
+        // 도달 전이면 남은 시간만큼 대기
+        if (remain > 0f)
+            yield return new WaitForSeconds(remain);
+
+        // headGlide가 tail까지 이동한 뒤에 연출 시작
+        ShowJudgementEffect(result);
+
+           //연출 끝나고 나서 반납
+            StartCoroutine(FinishAtTail());
+    }
     private IEnumerator FinishAtTail()
     {
         double now = AudioSettings.dspTime;
@@ -460,7 +468,7 @@ public class LongNote : MonoBehaviour
         // tail 도달 후 최종 반납
         FinishLongNote();
     }
-    private IEnumerator HeadGlidePulse(float duration = 0.15f)
+    private IEnumerator HeadGlidePulse(float duration = 0.2f)
     {
         if (headGlide == null) yield break;
 
@@ -485,6 +493,34 @@ public class LongNote : MonoBehaviour
         }
 
         headGlide.localScale = startScale;
+    }
+
+    private IEnumerator ShakeEffect(float duration, float shakeMagnitude, float shakeFrequency)
+    {
+        if (headGlide == null) yield break;
+
+        Transform target = headGlide.transform;
+        Vector3 originalPos = target.localPosition;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = elapsed / duration;
+
+            // 감쇠 (처음엔 세게, 점점 줄어듦)
+            float intensity = (1f - progress);
+
+            // 프레임마다 랜덤 진동
+            float offsetX = Mathf.Sin(Time.time * shakeFrequency * 20f) * shakeMagnitude * intensity;
+            float offsetY = Mathf.Cos(Time.time * shakeFrequency * 15f) * shakeMagnitude * intensity;
+
+            target.localPosition = originalPos + new Vector3(offsetX, offsetY, 0f);
+
+            yield return null;
+        }
+
+        target.localPosition = originalPos;
     }
 
 

@@ -507,7 +507,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 163e6fabb3476154a8971d0dfd5bab3e, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 038ad7f4bfc27154db32c77481f6e328, type: 2}
   m_sharedMaterial: {fileID: 9160023966625172560, guid: 163e6fabb3476154a8971d0dfd5bab3e, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -571,7 +571,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &101245698
@@ -3557,7 +3557,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: '- Song Name -'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 163e6fabb3476154a8971d0dfd5bab3e, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 038ad7f4bfc27154db32c77481f6e328, type: 2}
   m_sharedMaterial: {fileID: 9160023966625172560, guid: 163e6fabb3476154a8971d0dfd5bab3e, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -3621,7 +3621,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &761596231
@@ -4048,7 +4048,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 163e6fabb3476154a8971d0dfd5bab3e, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 038ad7f4bfc27154db32c77481f6e328, type: 2}
   m_sharedMaterial: {fileID: 9160023966625172560, guid: 163e6fabb3476154a8971d0dfd5bab3e, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -4112,7 +4112,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: -70.42384, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &921432138
@@ -4182,7 +4182,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 163e6fabb3476154a8971d0dfd5bab3e, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 038ad7f4bfc27154db32c77481f6e328, type: 2}
   m_sharedMaterial: {fileID: 9160023966625172560, guid: 163e6fabb3476154a8971d0dfd5bab3e, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -4246,7 +4246,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &928306522
@@ -6841,7 +6841,7 @@ GameObject:
   - component: {fileID: 1657347960}
   - component: {fileID: 1657347961}
   m_Layer: 0
-  m_Name: TimeLine
+  m_Name: Timeline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6871,7 +6871,7 @@ PlayableDirector:
   m_GameObject: {fileID: 1657347959}
   m_Enabled: 1
   serializedVersion: 3
-  m_PlayableAsset: {fileID: 0}
+  m_PlayableAsset: {fileID: 11400000, guid: 405ed60b128b6094496f593832333af4, type: 2}
   m_InitialState: 1
   m_WrapMode: 2
   m_DirectorUpdateMode: 1

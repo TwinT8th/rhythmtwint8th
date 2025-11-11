@@ -2,16 +2,57 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class CutsceneText
+{
+    public int targetIndex = 0;
+    [TextArea] public string text;
+    public float showDuration = 1f;
+    public float delay = 0f;
+    public Vector2 anchoredPos = Vector2.zero;
+}
+
+[System.Serializable]
+public class CutsceneImageLayer
+{
+    public int targetIndex = 0;             // 어떤 이미지 슬롯에서 재생할지 (0, 1, 2...)
+    public int startFrame = 0;
+    public int endFrame = 3;
+    public float playDuration = 2f;
+    public bool loop = true;
+    public Vector2 anchoredPos = Vector2.zero;
+    public Vector2 size = new Vector2(256, 256);
+    public float alpha = 1f;
+}
+
+
+[System.Serializable]
+public class CutsceneSegment
+{
+    [Header("프레임 범위 설정")]
+    public int startFrame = 0;
+    public int endFrame = 3;
+
+    [Header("재생 설정")]
+    public float playDuration = 2f;
+    public bool loop = true;
+
+    [Header("이미지 레이어 리스트")]
+    public List<CutsceneImageLayer> imageLayers = new();   //  각 세그먼트마다 개별 이미지 레이어 가능
+
+    [Header("문장 리스트")]
+    public List<CutsceneText> texts = new();
+}
+
 [CreateAssetMenu(menuName = "Cutscene/CutsceneSet")]
 public class CutsceneSet : ScriptableObject
 {
     [Header("컷씬 스프라이트들 (순서대로 프레임)")]
-    public List<Sprite> cutsceneSprites = new List<Sprite>();
+    public List<Sprite> cutsceneSprites = new();
 
     [Header("컷씬 세그먼트 리스트")]
-    public List<CutsceneSegment> segments = new List<CutsceneSegment>();
+    public List<CutsceneSegment> segments = new();
 }
-
 /*
 using System.Collections.Generic;
 using UnityEngine;

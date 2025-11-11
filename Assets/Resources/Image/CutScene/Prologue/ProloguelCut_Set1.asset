@@ -71,6 +71,7 @@ MonoBehaviour:
     endFrame: 3
     playDuration: 2
     loop: 1
+    imageLayers: []
     texts:
     - targetIndex: 0
       text: "\uACE0\uC591\uC774 \uC785\uC591\uB960 \uC5ED\uB300 \uCD5C\uC800\uCE58
@@ -82,6 +83,7 @@ MonoBehaviour:
     endFrame: 11
     playDuration: 3
     loop: 1
+    imageLayers: []
     texts:
     - targetIndex: 0
       text: "\uC6D0\uC778\uC740 \uC2A4\uD0C0 IDOL\uC758 \uAC15\uC544\uC9C0 \uC0AC\uB791?"
@@ -92,6 +94,7 @@ MonoBehaviour:
     endFrame: 3
     playDuration: 4
     loop: 1
+    imageLayers: []
     texts:
     - targetIndex: 0
       text: "A\uAD70\uC758 \uC801\uADF9\uC801 \uBC18\uB824\uACAC \uC785\uC591 \uD64D\uBCF4
@@ -109,10 +112,11 @@ MonoBehaviour:
     endFrame: 15
     playDuration: 6
     loop: 1
+    imageLayers: []
     texts:
     - targetIndex: 1
       text: "\uB09C\uB9AC\uB3C4 \uC544\uB2C8\uC5C8\uC5B4\uC694. \uC804 \uC138\uACC4
-        \uD2B8\uB79C\uB4DC\uB85C\n#MyDog\uCC4C\uB9B0\uC9C0 \uC774\uB7F0 \uAC70 \uB728\uACE0..."
+        \uD2B8\uB80C\uB4DC\uB85C\n#MyDog\uCC4C\uB9B0\uC9C0 \uC774\uB7F0 \uAC70 \uB728\uACE0..."
       showDuration: 3
       delay: 0
       anchoredPos: {x: 0, y: 0}
@@ -131,6 +135,7 @@ MonoBehaviour:
     endFrame: 34
     playDuration: 3
     loop: 0
+    imageLayers: []
     texts:
     - targetIndex: 1
       text: "\uC800\uC694? \uC800\uB3C4 \uAC15\uC544\uC9C0 \uBD84\uC591\uD588\uC5B4\uC694...\n(\uAC19\uC740
@@ -147,6 +152,7 @@ MonoBehaviour:
     endFrame: 50
     playDuration: 2
     loop: 0
+    imageLayers: []
     texts:
     - targetIndex: 1
       text: "\uD63C\uC790 \uC0B4\uBA74 \uACE0\uC591\uC774\uB97C \uD0A4\uC6B0\uB824\uACE0
@@ -162,8 +168,9 @@ MonoBehaviour:
       anchoredPos: {x: 0, y: 0}
   - startFrame: 51
     endFrame: 52
-    playDuration: 3
+    playDuration: 4
     loop: 1
+    imageLayers: []
     texts:
     - targetIndex: 1
       text: "\uC5B4... \uC800\uB294 \uAC1C\uB3C4 \uACE0\uC591\uC774\uB3C4 \uAD00\uC2EC

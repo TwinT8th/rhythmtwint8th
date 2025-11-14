@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc32707bc1ef53a4cb53fb4f1bf21813, type: 3}
+  m_Name: ProloguelCut2_Set
+  m_EditorClassIdentifier: 
+  cutsceneSprites:
+  - {fileID: -1780786592, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -919342972, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -1794238839, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: 2002517088, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -613823542, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -2120378870, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -1697213964, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: 1672434401, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  segments:
+  - startFrame: 0
+    endFrame: 7
+    playDuration: 8
+    loop: 1
+    imageLayers: []
+    texts: []

@@ -50,7 +50,8 @@ public class LongNoteHead : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
 
     public void OnPointerDown(PointerEventData e)
     {
-
+        if (parentNote == null || parentNote.IsJudged)
+            return;
         isHolding = true;
         parentNote.StartAutoGlide();
         holdStartTime = AudioSettings.dspTime;

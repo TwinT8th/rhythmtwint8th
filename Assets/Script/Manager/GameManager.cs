@@ -151,4 +151,8 @@ public class GameManager : MonoBehaviour
         if (theResult != null)
             theResult.ShowResult();
     }
+
+
+
+
 }

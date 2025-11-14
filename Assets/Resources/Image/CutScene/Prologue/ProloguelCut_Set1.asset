@@ -66,6 +66,14 @@ MonoBehaviour:
   - {fileID: -1981745004, guid: a7041394ddf77474ab94767a1af68b69, type: 3}
   - {fileID: -64179280, guid: a7041394ddf77474ab94767a1af68b69, type: 3}
   - {fileID: 2133573737, guid: a7041394ddf77474ab94767a1af68b69, type: 3}
+  - {fileID: -1780786592, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -919342972, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -1794238839, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: 2002517088, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -613823542, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -2120378870, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: -1697213964, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
+  - {fileID: 1672434401, guid: 61b8c84b8e9bacf4598ebd5a52a02a23, type: 3}
   segments:
   - startFrame: 0
     endFrame: 3
@@ -81,13 +89,13 @@ MonoBehaviour:
       anchoredPos: {x: 0, y: 0}
   - startFrame: 4
     endFrame: 11
-    playDuration: 3
+    playDuration: 2
     loop: 1
     imageLayers: []
     texts:
     - targetIndex: 0
       text: "\uC6D0\uC778\uC740 \uC2A4\uD0C0 IDOL\uC758 \uAC15\uC544\uC9C0 \uC0AC\uB791?"
-      showDuration: 3
+      showDuration: 2
       delay: 0
       anchoredPos: {x: 0, y: 0}
   - startFrame: 0
@@ -131,34 +139,34 @@ MonoBehaviour:
       showDuration: 3
       delay: 3
       anchoredPos: {x: 0, y: 0}
-  - startFrame: 12
+  - startFrame: 16
     endFrame: 34
-    playDuration: 3
+    playDuration: 2
     loop: 0
     imageLayers: []
     texts:
     - targetIndex: 1
       text: "\uC800\uC694? \uC800\uB3C4 \uAC15\uC544\uC9C0 \uBD84\uC591\uD588\uC5B4\uC694...\n(\uAC19\uC740
         \uB3D9\uBB3C \uD0A4\uC6B0\uB294 \uAC8C) \uB35C \uC678\uB86D\uC796\uC544\uC694."
-      showDuration: 3
+      showDuration: 2
       delay: 0
       anchoredPos: {x: 0, y: 0}
     - targetIndex: 2
       text: "B \uBAA8 \uC528 (\uB300\uD559\uC0DD)"
-      showDuration: 3
+      showDuration: 2
       delay: 0
       anchoredPos: {x: 0, y: 0}
   - startFrame: 35
     endFrame: 50
     playDuration: 2
-    loop: 0
+    loop: 1
     imageLayers: []
     texts:
     - targetIndex: 1
       text: "\uD63C\uC790 \uC0B4\uBA74 \uACE0\uC591\uC774\uB97C \uD0A4\uC6B0\uB824\uACE0
         \uD588\uB294\uB370\uC694.\n\uC9C0\uAE08\uC740 \uACB0\uD63C\uD560 \uC0AC\uB78C\uC774
         \uAC15\uC544\uC9C0\uB97C \uD0A4\uC6CC\uC11C..."
-      showDuration: 2
+      showDuration: 3
       delay: 0
       anchoredPos: {x: 0, y: 0}
     - targetIndex: 2
@@ -168,18 +176,41 @@ MonoBehaviour:
       anchoredPos: {x: 0, y: 0}
   - startFrame: 51
     endFrame: 52
-    playDuration: 4
+    playDuration: 3
     loop: 1
     imageLayers: []
     texts:
     - targetIndex: 1
       text: "\uC5B4... \uC800\uB294 \uAC1C\uB3C4 \uACE0\uC591\uC774\uB3C4 \uAD00\uC2EC
         \uC5C6\uC5B4\uC11C\uC694..."
-      showDuration: 3
+      showDuration: 4
       delay: 0
       anchoredPos: {x: 0, y: 0}
     - targetIndex: 2
       text: "H \uBAA8 \uC528 (\uAC00\uC218)"
-      showDuration: 3
+      showDuration: 4
       delay: 0
       anchoredPos: {x: 0, y: 0}
+  - startFrame: 51
+    endFrame: 52
+    playDuration: 6
+    loop: 0
+    imageLayers: []
+    texts:
+    - targetIndex: 1
+      text: "\uC5B4... \uC800\uB294 \uAC1C\uB3C4 \uACE0\uC591\uC774\uB3C4 \uAD00\uC2EC
+        \uC5C6\uC5B4\uC11C\uC694..."
+      showDuration: 4
+      delay: 0
+      anchoredPos: {x: 0, y: 0}
+    - targetIndex: 2
+      text: "H \uBAA8 \uC528 (\uAC00\uC218)"
+      showDuration: 4
+      delay: 0
+      anchoredPos: {x: 0, y: 0}
+  - startFrame: 53
+    endFrame: 60
+    playDuration: 12
+    loop: 1
+    imageLayers: []
+    texts: []

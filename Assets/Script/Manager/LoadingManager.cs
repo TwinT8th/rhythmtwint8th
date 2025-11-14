@@ -1,85 +1,96 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System;
+
 
 public class LoadingManager : MonoBehaviour
 {
     public static LoadingManager instance;
+    public Action onSceneLoaded;
 
-    [Header("Äµ¹ö½º ÂüÁ¶")]
-    [SerializeField] private CanvasGroup fadeCanvasGroup;    // °ËÀº»ö ÆäÀÌµå¿ë
-    [SerializeField] private CanvasGroup loadingCanvasGroup; // ½ÇÁ¦ ·ÎµùÃ¢¿ë
+    [Header("í˜ì´ë“œìš© ì´ë¯¸ì§€ (ê²€ì€ìƒ‰ í’€ìŠ¤í¬ë¦° UI)")]
+    [SerializeField] private Image fadeImage;
 
-    [Header("¼³Á¤°ª")]
-    [SerializeField] private float fadeDuration = 0.4f;   // ÆäÀÌµå ÀÎ/¾Æ¿ô ½Ã°£
-    [SerializeField] private float loadingDuration = 0.8f; // ·ÎµùÃ¢ Ç¥½Ã ½Ã°£
+    [Header("í˜ì´ë“œ ì„¤ì •")]
+    [SerializeField] private float fadeDuration = 1f;
+
+    private bool isFading = false;
 
     private void Awake()
     {
-        if (instance == null) instance = this;
-        else Destroy(gameObject);
-
-        if (fadeCanvasGroup != null)
-            fadeCanvasGroup.alpha = 0f;
-        if (loadingCanvasGroup != null)
-            loadingCanvasGroup.alpha = 0f;
-    }
-
-    // ?? ºü¸¥ ÆäÀÌµå (0.4ÃÊ°£ ¾îµÎ¿öÁ³´Ù°¡ ´Ù½Ã ¹à¾ÆÁü)
-    public void FadeQuick()
-    {
-        if (fadeCanvasGroup == null) return;
-        StartCoroutine(FadeRoutine());
-    }
-
-    private IEnumerator FadeRoutine()
-    {
-        fadeCanvasGroup.gameObject.SetActive(true);
-
-        // ÆäÀÌµå ¾Æ¿ô (È­¸é ¾îµÓ°Ô)
-        yield return StartCoroutine(FadeCanvas(fadeCanvasGroup, 0f, 1f, fadeDuration * 0.5f));
-
-        // ÂªÀº µô·¹ÀÌ ÈÄ
-        yield return new WaitForSeconds(0.1f);
-
-        // ÆäÀÌµå ÀÎ (È­¸é ¹à°Ô)
-        yield return StartCoroutine(FadeCanvas(fadeCanvasGroup, 1f, 0f, fadeDuration * 0.5f));
-
-        fadeCanvasGroup.gameObject.SetActive(false);
-    }
-
-    // ?? ÁøÂ¥ ·ÎµùÃ¢ (0.8ÃÊ Ç¥½Ã)
-    public void ShowLoading()
-    {
-        if (loadingCanvasGroup == null) return;
-        StartCoroutine(ShowLoadingRoutine());
-    }
-
-    private IEnumerator ShowLoadingRoutine()
-    {
-        loadingCanvasGroup.gameObject.SetActive(true);
-
-        // Á¡Á¡ ³ªÅ¸³²
-        yield return StartCoroutine(FadeCanvas(loadingCanvasGroup, 0f, 1f, 0.2f));
-
-        // Àá½Ã À¯Áö
-        yield return new WaitForSeconds(loadingDuration);
-
-        // Á¡Á¡ »ç¶óÁü
-        yield return StartCoroutine(FadeCanvas(loadingCanvasGroup, 1f, 0f, 0.2f));
-
-        loadingCanvasGroup.gameObject.SetActive(false);
-    }
-
-    private IEnumerator FadeCanvas(CanvasGroup cg, float from, float to, float duration)
-    {
-        float timer = 0f;
-        while (timer < duration)
+        // ì‹±ê¸€í†¤: ì”¬ ì „í™˜ ì‹œ íŒŒê´´ë˜ì§€ ì•ŠìŒ
+        if (instance == null)
         {
-            timer += Time.deltaTime;
-            cg.alpha = Mathf.Lerp(from, to, timer / duration);
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+
+        if (fadeImage != null)
+        {
+            Color c = fadeImage.color;
+            c.a = 0f;
+            fadeImage.color = c;
+        }
+    }
+
+    /// <summary>
+    /// ì”¬ ì „í™˜ (ê¸°ë³¸: í˜ì´ë“œì•„ì›ƒ â†’ ì”¬ ë¡œë“œ â†’ í˜ì´ë“œì¸)
+    /// </summary>
+    public void LoadScene(string sceneName)
+    {
+        if (!isFading)
+            StartCoroutine(FadeAndLoadScene(sceneName));
+    }
+
+    private IEnumerator FadeAndLoadScene(string sceneName)
+    {
+        isFading = true;
+
+        yield return StartCoroutine(Fade(0f, 1f));
+
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+        while (!asyncLoad.isDone)
+            yield return null;
+
+        // ì”¬ì´ ì™„ì „íˆ ë¡œë“œëœ ì‹œì ì— ì½œë°± ì‹¤í–‰
+        onSceneLoaded?.Invoke();
+        onSceneLoaded = null;              // ì¬í˜¸ì¶œ ë°©ì§€ (ì¤‘ìš”)
+
+        yield return new WaitForSeconds(0.1f);
+        yield return StartCoroutine(Fade(1f, 0f));
+
+        isFading = false;
+    }
+
+    private IEnumerator Fade(float startAlpha, float endAlpha)
+    {
+        if (fadeImage == null)
+            yield break;
+
+        fadeImage.gameObject.SetActive(true);
+
+        Color c = fadeImage.color;
+        float elapsed = 0f;
+
+        while (elapsed < fadeDuration)
+        {
+            c.a = Mathf.Lerp(startAlpha, endAlpha, elapsed / fadeDuration);
+            fadeImage.color = c;
+            elapsed += Time.deltaTime;
             yield return null;
         }
-        cg.alpha = to;
+
+        c.a = endAlpha;
+        fadeImage.color = c;
+
+        // ì™„ì „íˆ íˆ¬ëª…í•´ì§€ë©´ ë¹„í™œì„±í™”
+        if (endAlpha == 0f)
+            fadeImage.gameObject.SetActive(false);
     }
 }

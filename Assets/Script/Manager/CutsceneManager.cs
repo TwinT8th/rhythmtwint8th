@@ -31,7 +31,7 @@ public class CutsceneManager : MonoBehaviour
     private Coroutine playCoroutine;
     public int frameRate = 8;        // 초당 프레임 수 (FPS)
 
-
+   
     // Start is called before the first frame update
     void Start()
     {
@@ -199,14 +199,19 @@ public class CutsceneManager : MonoBehaviour
     }
     public void LoadCutsceneSet(CutsceneSet set)
     {
+
+
         cutsceneSprites = set.cutsceneSprites;
         segments = set.segments;
         Debug.Log($"컷씬 세트 로드 완료: {set.name}");
     }
+
 
     private void OnTimelineEnd(PlayableDirector dir)
     {
         Debug.Log("컷씬이 끝났습니다!");
         // 다음 씬 전환이나 UI 활성화 등 처리
     }
+
+
 }

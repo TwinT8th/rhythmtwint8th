@@ -197,7 +197,8 @@ public class LongNote : MonoBehaviour
             RectTransform bodyRect = body.rectTransform;
             bodyRect.anchoredPosition = lineRect.anchoredPosition;
             bodyRect.localRotation = lineRect.localRotation;
-            bodyRect.sizeDelta = lineRect.sizeDelta;
+            //bodyRect.sizeDelta = lineRect.sizeDelta;
+            bodyRect.sizeDelta = new Vector2(lineRect.sizeDelta.x, bodyRect.sizeDelta.y);
         }
         
         // 내부 기록
